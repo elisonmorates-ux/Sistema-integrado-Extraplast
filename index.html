@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.6</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.8</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -886,13 +886,18 @@ tbody tr:hover{background:#fffaf6}
 <div id="movPainel_manual" class="mov-subpage" role="region" hidden>
 <div class="box"><h3>Entrada / Saída integrada ao WMS</h3><div class="grid">
 <label>Operação<select id="movOper" onchange="ajustarMovOper()"><option value="ENTRADA">ENTRADA</option><option value="SAIDA">SAÍDA</option><option value="TRANSFERENCIA">TRANSFERÊNCIA</option></select></label>
-<label>Tipo de estoque<select id="movTipo" onchange="preencherMovItens();preencherMovEnderecos(true);ajustarMovFamilia(true)"><option value="PRODUTO_PRONTO">PRODUTO PRONTO</option><option value="MATERIA_PRIMA">MATÉRIA-PRIMA</option></select></label>
+<label>Tipo de estoque<select id="movTipo" onchange="movAtualizarTipo()"><option value="PRODUTO_PRONTO">PRODUTO PRONTO</option><option value="MATERIA_PRIMA">MATÉRIA-PRIMA</option><option value="PATIO">PÁTIO (PA)</option></select></label>
 <div id="movFamiliaWrap" class="movfamilia-field"><label for="movFamilia">Família do produto (entrada PP) *</label><input id="movFamilia" list="movFamiliasLista" placeholder="Selecione ou digite a família" autocomplete="off" oninput="filtrarMovProdutosPorFamilia()"><datalist id="movFamiliasLista"></datalist><div class="movpos-help">Selecione a família para filtrar os produtos ou informe uma nova. A família será gravada no cadastro do produto ao confirmar a entrada.</div></div>
-<label>Item<input id="movItemBusca" list="movProdutosLista" placeholder="Digite código ou descrição..." oninput="resolverMovItem()"><datalist id="movProdutosLista"></datalist><input id="movItem" type="hidden"></label><div class="movpos-field"><label id="movEndLabel" for="movEndBusca">Posição WMS</label><div class="movpos-wrap"><input id="movEndBusca" type="text" placeholder="Pesquisar posição (ex.: PP-1-1-15)" autocomplete="off" aria-label="Pesquisar posição WMS" aria-controls="movEndResultados" aria-expanded="false" onfocus="abrirMovPos('orig')" oninput="filtrarMovPos('orig')" onkeydown="teclaMovPos(event,'orig')" onblur="validarMovPos('orig')"><input id="movEnd" type="hidden"><div id="movEndResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help">Digite parte do código e escolha uma posição.</div></div><div class="movpos-field" id="movEndDestinoLabel" style="display:none"><label for="movEndDestinoBusca">Posição destino</label><div class="movpos-wrap"><input id="movEndDestinoBusca" type="text" placeholder="Pesquisar destino" autocomplete="off" aria-label="Pesquisar posição de destino" aria-controls="movEndDestinoResultados" aria-expanded="false" onfocus="abrirMovPos('dest')" oninput="filtrarMovPos('dest')" onkeydown="teclaMovPos(event,'dest')" onblur="validarMovPos('dest')"><input id="movEndDestino" type="hidden"><div id="movEndDestinoResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help">Pesquise pelo código da posição de destino.</div></div>
-<label>Lote<input id="movLote" placeholder="Lote"></label><label>Quantidade<input id="movQtd" type="number" min="0" step="0.01" placeholder="0"></label>
-<label>Documento<input id="movDoc" placeholder="NF, OP, requisição..."></label><label>Observação<input id="movObs" placeholder="Observação"></label></div>
+<label id="movItemLabel">Item<input id="movItemBusca" list="movProdutosLista" placeholder="Digite código ou descrição..." oninput="resolverMovItem()"><datalist id="movProdutosLista"></datalist><input id="movItem" type="hidden"></label><div id="movPatioWrap" style="display:none;grid-column:span 2">
+ <label for="movPatioRegistro">Registro do Pátio (código, descrição e lote)</label>
+ <select id="movPatioRegistro" onchange="movPatioSelecionar()"><option value="">Selecione um registro de estoque do Pátio...</option></select>
+ <div id="movPatioInfo" class="movpos-help">Selecione um registro existente; o lote e o saldo serão identificados automaticamente. Não é necessária posição WMS.</div>
+</div>
+<div id="movPosOrigWrap" class="movpos-field"><label id="movEndLabel" for="movEndBusca">Posição WMS</label><div class="movpos-wrap"><input id="movEndBusca" type="text" placeholder="Pesquisar posição (ex.: PP-1-1-15)" autocomplete="off" aria-label="Pesquisar posição WMS" aria-controls="movEndResultados" aria-expanded="false" onfocus="abrirMovPos('orig')" oninput="filtrarMovPos('orig')" onkeydown="teclaMovPos(event,'orig')" onblur="validarMovPos('orig')"><input id="movEnd" type="hidden"><div id="movEndResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help">Digite parte do código e escolha uma posição.</div></div><div class="movpos-field" id="movEndDestinoLabel" style="display:none"><label for="movEndDestinoBusca">Posição destino</label><div class="movpos-wrap"><input id="movEndDestinoBusca" type="text" placeholder="Pesquisar destino" autocomplete="off" aria-label="Pesquisar posição de destino" aria-controls="movEndDestinoResultados" aria-expanded="false" onfocus="abrirMovPos('dest')" oninput="filtrarMovPos('dest')" onkeydown="teclaMovPos(event,'dest')" onblur="validarMovPos('dest')"><input id="movEndDestino" type="hidden"><div id="movEndDestinoResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help">Pesquise pelo código da posição de destino.</div></div>
+<label>Lote<input id="movLote" placeholder="Lote"></label><label>Quantidade<input id="movQtd" type="number" min="0" step="0.01" placeholder="0" oninput="movPatioNovaOperacao()"></label>
+<label>Documento<input id="movDoc" placeholder="NF, OP, requisição..." oninput="movPatioNovaOperacao()"></label><label>Observação<input id="movObs" placeholder="Observação" oninput="movPatioNovaOperacao()"></label></div>
 <div class="actions"><button class="pri" onclick="executarMovWms()">Confirmar Movimentação</button></div>
-<p class="muted">Entradas de MP devem ser feitas em <b>Entrada MP + etiqueta PDF</b>, com QR exclusivo por volume. Saídas e transferências permanecem disponíveis aqui. Movimentações manuais seguem disponíveis para PP sem etiqueta EXPP. Pallets EXPP gerados pela Produção devem ser recebidos exclusivamente pela leitura QR acima, com escolha de posição destino.</p><p class="muted">Na saída, o sistema valida o saldo disponível do item no lote e posição selecionados.</p></div>
+<p class="muted">Entradas de MP devem ser feitas em <b>Entrada MP + etiqueta PDF</b>, com QR exclusivo por volume. Saídas e transferências permanecem disponíveis aqui. Movimentações manuais seguem disponíveis para PP sem etiqueta EXPP. Pallets EXPP gerados pela Produção devem ser recebidos exclusivamente pela leitura QR acima, com escolha de posição destino. Para Pátio (PA), entradas e saídas trabalham com registros existentes sem posição WMS; transferências permanecem indisponíveis enquanto não houver endereçamento do Pátio.</p><p class="muted">Na saída, o sistema valida o saldo disponível do item no lote e posição selecionados.</p></div>
 <div class="box"><h3>Conversão MP → Produto Pronto</h3><p class="muted">Consome matéria-prima de uma posição/lote do WMS e gera saldo de Produto Pronto em uma posição PP. A baixa da MP e a entrada do PP são feitas juntas.</p><div class="form"><div><label>Matéria-prima *</label><select id="convMp" onchange="preencherConversaoLotes()"></select></div><div><label>Posição MP *</label><select id="convMpEnd" onchange="preencherConversaoLotes()"></select></div><div><label>Lote MP *</label><select id="convMpLote"></select></div><div><label>Quantidade MP consumida *</label><input id="convMpQtd" type="number" min="0" step="0.01"></div><div><label>Produto Pronto *</label><select id="convProd"></select></div><div><label>Quantidade PP produzida *</label><input id="convPpQtd" type="number" min="0" step="0.01"></div><div><label>Lote PP *</label><input id="convPpLote" placeholder="Lote do produto pronto"></div><div><label>Posição PP destino *</label><select id="convPpEnd"></select></div><div><label>Documento / OP</label><input id="convDoc" placeholder="Ordem de produção"></div><div><label>Observação</label><input id="convObs" placeholder="Observação"></div></div><div class="actions"><button class="pri" onclick="executarConversaoMpPp()">Confirmar Conversão MP → PP</button></div></div></div>
 <div id="movPainel_historico" class="mov-subpage" role="region" hidden>
 <div class="box"><h3>Histórico de Movimentações</h3><div class="tw"><table><thead><tr><th>Data</th><th>Estoque</th><th>Movimento</th><th>Qtd.</th><th>Lote</th><th>Documento</th></tr></thead><tbody id="movLista"></tbody></table></div></div><div class="box"><h3>Histórico de Correções WMS</h3><p class="muted">Correções cadastrais não são entradas ou saídas de estoque.</p><div class="tw"><table><thead><tr><th>Data</th><th>Tipo</th><th>Item anterior</th><th>Item novo</th><th>Posição anterior</th><th>Posição nova</th><th>Lote anterior</th><th>Lote novo</th><th>Qtd.</th><th>Motivo</th></tr></thead><tbody id="corrLista"></tbody></table></div></div></div></div></div></section>
@@ -992,8 +997,7 @@ async function load(){
  else{$('conn').textContent='Conectado com aviso';$('conn').title='Falha: '+falhas.map(x=>x.t+': '+(x.error?.message||'erro')).join(' | ');console.warn('Tabelas com falha:',falhas.map(x=>x.t))}
 }
 function render(){
- reconstruirIndiceWms();
- if($('auditoriaWmsResumo')){setHTML('auditoriaWmsResumo','Dados atualizados. Clique em Verificar consistência para refazer a auditoria.');setHTML('auditoriaWmsLista','');}
+ reconstruirIndiceWms(); if($('auditoriaWmsResumo')){setHTML('auditoriaWmsResumo','Dados atualizados. Clique em Verificar consistência para refazer a auditoria.');setHTML('auditoriaWmsLista','');}
  let pm=new Map(produtos.map(x=>[x.id,x])),mm=new Map(mps.map(x=>[x.id,x])),lm=new Map(locais.map(x=>[x.id,x.nome]));
  setText('dPed',pedidos.length);setText('dProd',produtos.length);setText('dMp',mps.length);setText('dCarga',cargas.length);
  setHTML('resumo',`PP físico: <b>${F(pp.reduce((a,x)=>a+N(x.quantidade),0))}</b> · MP física: <b>${F(emp.reduce((a,x)=>a+N(x.quantidade),0))}</b> · Endereços WMS: <b>${ends.length}</b>`);
@@ -1992,8 +1996,7 @@ async function finalizarConferenciaCarga(){
  if(confFinalizacao)return toast('Esta conferência já foi finalizada');
  const cv=$('confAssinatura');
  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
- if(!blob)return toast('Não foi possível gerar a assinatura');
- const path=`${confCargaAtual.id}/assinatura_final_${Date.now()}.png`;
+ if(!blob)return toast('Não foi possível gerar a assinatura'); const path=`${confCargaAtual.id}/assinatura_final_${Date.now()}.png`;
  toast('Finalizando conferência...');
  const up=await sb.storage.from('conferencia-cargas').upload(path,blob,{contentType:'image/png',upsert:false});
  if(up.error)return toast('Erro ao salvar assinatura: '+up.error.message);
@@ -2067,16 +2070,18 @@ function axMov(t){
  let en=t==='entrada';$('axBody').innerHTML=`<div class="box"><h3>${en?'Entrada de Material':'Consumo / Saída'}</h3><div class="form"><div><label>Item *</label><select id="axmi"><option value="">Selecione</option>${AX.i.filter(x=>x.ativo!==false).map(i=>`<option value="${i.id}">${E(i.codigo)} — ${E(i.descricao)} | saldo ${axQ(axSaldo(i.id))}</option>`).join('')}</select></div><div><label>Quantidade *</label><input id="axmq"></div><div><label>Data *</label><input id="axmd" type="date" value="${new Date().toISOString().slice(0,10)}"></div>${en?`<div><label>Fornecedor</label><select id="axmf"><option value="">Selecione</option>${AX.f.map(x=>`<option value="${x.id}">${E(x.nome)}</option>`).join('')}</select></div><div><label>Nota Fiscal</label><input id="axnf"></div><div><label>Custo unitário</label><input id="axmc"></div>`:`<div><label>Setor *</label><select id="axms" onchange="axFillCC()"><option value="">Selecione</option>${AX.set.map(x=>`<option value="${x.id}">${E(x.nome)}</option>`).join('')}</select></div><div><label>Centro de Custo</label><select id="axmcc"><option value="">Selecione o setor</option></select></div><div><label>Motivo</label><input id="axmot"></div>`}<div><label>Observação</label><input id="axmo"></div></div><div class="actions"><button class="pri" id="axMovRegistrarBtn" type="button" onclick="axSaveMov('${t}')">Registrar ${en?'entrada':'saída'}</button></div></div>`}
 function axFillCC(){let sid=N($('axms').value);$('axmcc').innerHTML='<option value="">Selecione</option>'+AX.cc.filter(x=>N(x.setor_id)===sid).map(x=>`<option value="${x.id}">${E((x.codigo?x.codigo+' — ':'')+x.nome)}</option>`).join('')}
 async function axConfirmarSessaoMovimento(){
- // Valida a sessão no servidor antes de executar a RPC protegida.
- // Não altera a chave da operação (proteção contra lançamentos duplicados).
+ // Consulta a sessão real no Supabase antes de executar uma função protegida.
+ // Não altera o UUID da operação: uma nova tentativa mantém a proteção contra duplicidade.
  let resposta;
  try{resposta=await sb.auth.getUser()}catch(e){
   toast('Não foi possível validar o login. Verifique a conexão e tente novamente. Nenhuma movimentação foi enviada.');
   return false;
  }
  if(resposta.error||!resposta.data?.user){
-  const gate=$('authGate'); if(gate)gate.style.display='flex';
-  const msg=$('loginMsg'); if(msg)msg.textContent='Sua sessão expirou. Entre novamente para movimentar o Almoxarifado.';
+  const login=$('authGate');
+  if(login)login.style.display='flex';
+  const aviso=$('loginMsg');
+  if(aviso)aviso.textContent='Sua sessão expirou. Entre novamente para movimentar o Almoxarifado.';
   toast('Sua sessão expirou. Faça login novamente antes de registrar a movimentação.');
   return false;
  }
@@ -2127,7 +2132,7 @@ async function axSaveMov(t){
   console.error('Falha na movimentação de Almoxarifado:',e);
   let msg=String(e?.message||e);
   if(/permission denied for function almox_registrar_movimento_seguro/i.test(msg)){
-   // A RPC pode ter recebido um token expirado; confirme antes de sugerir permissões.
+   // Se a autenticação foi perdida durante a requisição, pedir novo login.
    let autenticado=false;
    try{const resposta=await sb.auth.getUser();autenticado=!!resposta.data?.user&&!resposta.error}catch(_e){}
    if(!autenticado){
@@ -2990,8 +2995,7 @@ async function criarInventario(){let codigo=$('invCod').value.trim();if(!codigo)
 // O input visível não é enviado ao banco: somente o ID validado da posição selecionada.
 let invPosLista=[],invPosAtiva=-1;
 function invPosElementos(){return {id:$('invEnd'),busca:$('invEndBusca'),lista:$('invEndResultados')};}
-function preencherInvEnderecos(limpar=false){
- const el=invPosElementos();if(!el.id||!el.busca||!el.lista)return;
+function preencherInvEnderecos(limpar=false){ const el=invPosElementos();if(!el.id||!el.busca||!el.lista)return;
  const cod=localCodigoPorTipo($('invTipo')?.value||'PRODUTO_PRONTO');
  const local=locais.find(x=>String(x.codigo||'').toUpperCase()===cod);
  invPosLista=ends.filter(x=>x.ativo!==false&&(local?Number(x.local_id)===Number(local.id):String(x.codigo||'').toUpperCase().startsWith(cod+'-')))
@@ -3163,15 +3167,85 @@ function teclaMovPos(event,lado){
   if(escolhido)escolherMovPos(lado,escolhido.id);else fecharMovPos(lado);
  }
 }
+let movPatioOperacaoUid=null;
+function movPatioNovaOperacao(){if($('movTipo')?.value==='PATIO')movPatioOperacaoUid=null;}
+function movPatioSelecionar(){
+ movPatioNovaOperacao();
+ const x=epa.find(v=>Number(v.id)===Number($('movPatioRegistro')?.value));
+ const disponivel=x?Number(x.quantidade||0)-Number(x.reservado||0)-Number(x.bloqueado||0):0;
+ if($('movLote'))$('movLote').value=x?.lote||'';
+ if($('movPatioInfo'))$('movPatioInfo').textContent=x
+  ?`Código: ${x.codigo_origem||(produtos.find(p=>p.id===x.produto_id)?.codigo)||'SEM CÓDIGO'} · Lote: ${x.lote||'Sem lote'} · Saldo físico: ${F(x.quantidade)} · Disponível: ${F(disponivel)} · Registro #${x.id}`
+  :'Selecione um registro existente do Pátio para informar a movimentação.';
+}
+function movPatioPreencher(){
+ const el=$('movPatioRegistro');if(!el)return;
+ const antigo=el.value;
+ const arr=[...epa].sort((a,b)=>String(a.codigo_origem||'').localeCompare(String(b.codigo_origem||''),'pt-BR',{numeric:true}));
+ el.innerHTML='<option value="">Selecione um registro do Pátio...</option>'+arr.map(x=>{
+  const pp=produtos.find(p=>Number(p.id)===Number(x.produto_id));
+  const codigo=x.codigo_origem||pp?.codigo||'SEM CÓDIGO';
+  const descricao=x.descricao_origem||pp?.descricao||'Sem descrição';
+  const saldo=Number(x.quantidade||0)-Number(x.reservado||0)-Number(x.bloqueado||0);
+  return `<option value="${Number(x.id)}">${E(codigo)} · ${E(descricao)} · Lote ${E(x.lote||'-')} · Disp. ${F(saldo)} · #${x.id}</option>`;
+ }).join('');
+ if(arr.some(x=>String(x.id)===antigo))el.value=antigo;
+ movPatioSelecionar();
+}
+function movAtualizarTipo(){
+ const patio=$('movTipo')?.value==='PATIO';
+ if($('movPatioWrap'))$('movPatioWrap').style.display=patio?'':'none';
+ if($('movItemLabel'))$('movItemLabel').style.display=patio?'none':'';
+ if($('movPosOrigWrap'))$('movPosOrigWrap').style.display=patio?'none':'';
+ const trans=$('movOper')?.querySelector('option[value="TRANSFERENCIA"]');if(trans)trans.disabled=patio;
+ if(patio&&$('movOper')?.value==='TRANSFERENCIA')$('movOper').value='ENTRADA';
+ if($('movLote')){$('movLote').readOnly=patio;$('movLote').title=patio?'Lote vinculado ao registro do Pátio':'';}
+ if(patio)movPatioPreencher();else preencherMovItens();
+ preencherMovEnderecos(true);
+ ajustarMovFamilia(true);
+ ajustarMovOper();
+ movPatioOperacaoUid=null;
+}
 function ajustarMovOper(){
- let tr=$('movOper')?.value==='TRANSFERENCIA';
+ const patio=$('movTipo')?.value==='PATIO';
+ if(patio&&$('movOper')?.value==='TRANSFERENCIA')$('movOper').value='ENTRADA';
+ let tr=!patio&&$('movOper')?.value==='TRANSFERENCIA';
  if($('movEndDestinoLabel'))$('movEndDestinoLabel').style.display=tr?'':'none';
  if($('movEndLabel'))$('movEndLabel').textContent=tr?'Posição origem':'Posição WMS';
  if(!tr)fecharMovPos('dest');
  ajustarMovFamilia();
+ movPatioNovaOperacao();
 }
+async function executarMovPatio(){
+ if(!podeAlterar('MOVIMENTACOES'))return toast('Seu usuário não possui permissão ALTERAR em Movimentações.');
+ const reg=Number($('movPatioRegistro')?.value||0),op=$('movOper')?.value,q=Number($('movQtd')?.value||0);
+ const x=epa.find(v=>Number(v.id)===reg);
+ if(!x)return toast('Selecione um registro válido do Pátio.');
+ if(op!=='ENTRADA'&&op!=='SAIDA')return toast('Pátio permite entrada e saída. Transferência exige endereçamento WMS.');
+ if(!Number.isFinite(q)||q<=0)return toast('Informe uma quantidade maior que zero.');
+ const disponivel=Number(x.quantidade||0)-Number(x.reservado||0)-Number(x.bloqueado||0);
+ if(op==='SAIDA'&&q>disponivel)return toast('Quantidade maior que o saldo disponível do registro.');
+ const documento=$('movDoc')?.value?.trim()||null,observacao=$('movObs')?.value?.trim()||null;
+ if(!confirm(`${op==='ENTRADA'?'Registrar entrada':'Registrar saída'} no PÁTIO?\nCódigo: ${x.codigo_origem||'Sem código'}\nLote: ${x.lote||'-'}\nQuantidade: ${F(q)}\nDisponível antes: ${F(disponivel)}\n\nConfirmar?`))return;
+ if(!movPatioOperacaoUid)movPatioOperacaoUid=crypto.randomUUID();
+ const botao=document.querySelector('#movPainel_manual button[onclick="executarMovWms()"]');
+ if(botao)botao.disabled=true;
+ try{
+  const {data,error}=await sb.rpc('movimentar_estoque_patio_seguro',{
+   p_operacao_uid:movPatioOperacaoUid,p_estoque_pa_id:reg,p_tipo:op,
+   p_quantidade:q,p_documento:documento,p_observacao:observacao});
+  if(error)throw error;
+  toast(data?.repetida?'Movimentação já confirmada anteriormente. Não houve duplicidade.':`Movimentação do Pátio confirmada. Saldo: ${F(data?.saldo_final)}.`);
+  movPatioOperacaoUid=null;
+  $('movQtd').value='';$('movDoc').value='';$('movObs').value='';
+  await load();movPatioPreencher();
+ }catch(e){console.error('Falha ao movimentar Pátio:',e);toast('Movimentação NÃO confirmada: '+(e?.message||e)+'. Verifique o histórico antes de tentar novamente.');}
+ finally{if(botao)botao.disabled=false;}
+}
+
 async function executarMovWms(){
  let tipo=$('movTipo').value,item=N($('movItem').value),orig=N($('movEnd').value),dest=N($('movEndDestino')?.value),q=N($('movQtd').value),op=$('movOper').value;
+ if(tipo==='PATIO')return executarMovPatio();
  if(tipo==='MATERIA_PRIMA'&&op==='ENTRADA'){movAbrirEntradaMp();return mpmMsg('Use Entrada MP + etiqueta PDF para gerar os QR individuais sem perder rastreabilidade.',true)}
  if(!item)return toast('Selecione um item válido pela pesquisa');
  if(!orig||q<=0)return toast('Informe posição e quantidade');
@@ -3920,8 +3994,7 @@ async function opxCompletarItensExistentes(){
 
 // V1.35.4 · Submenus da Produção: importar, andamento e finalizadas.
 function opxAtualizarPainelInicio(){
- const ativas=OPX.ops.filter(o=>o.status!=='CONCLUIDA').length,finalizadas=OPX.ops.length-ativas;
- for(const [id,qtd] of [['prodTotalOps',OPX.ops.length],['prodTotalAtivas',ativas],['prodTotalFinalizadas',finalizadas],['prodCardAtivas',ativas],['prodCardFinalizadas',finalizadas]]){
+ const ativas=OPX.ops.filter(o=>o.status!=='CONCLUIDA').length,finalizadas=OPX.ops.length-ativas; for(const [id,qtd] of [['prodTotalOps',OPX.ops.length],['prodTotalAtivas',ativas],['prodTotalFinalizadas',finalizadas],['prodCardAtivas',ativas],['prodCardFinalizadas',finalizadas]]){
   const el=$(id);if(el)el.textContent=String(qtd);
  }
 }
@@ -4920,8 +4993,7 @@ function pedRelDados(){
 }
 function pedRelKpi(nome,valor,destaque=false){return '<div class="ped-rel-kpi'+(destaque?' is-accent':'')+'"><small>'+E(nome)+'</small><strong>'+E(valor)+'</strong></div>'}
 function pedRelRender(){
- if(!$('pedRelTabela'))return;
- if(!PED_REL_DADOS_OK){$('pedRelResumo').innerHTML='';$('pedRelTabela').innerHTML='<tr><td colspan="8">Falha ao consultar pedidos no Supabase. Atualize a conexão antes de gerar relatório.</td></tr>';return;}
+ if(!$('pedRelTabela'))return; if(!PED_REL_DADOS_OK){$('pedRelResumo').innerHTML='';$('pedRelTabela').innerHTML='<tr><td colspan="8">Falha ao consultar pedidos no Supabase. Atualize a conexão antes de gerar relatório.</td></tr>';return;}
  const z=pedRelDados();
  $('pedRelResumo').innerHTML=pedRelKpi('Produtos',F(z.totais.produtos))+pedRelKpi('Pedidos envolvidos',F(z.totais.pedidos))+pedRelKpi('Quantidade pedida',F(z.totais.pedida))+pedRelKpi('Quantidade entregue',F(z.totais.entregue))+pedRelKpi('Saldo total a entregar',F(z.totais.saldo),true);
  $('pedRelTabela').innerHTML=z.produtosAgr.map(x=>'<tr><td><b>'+E(x.produto.codigo)+'</b></td><td class="ped-rel-desc">'+E(x.produto.descricao)+'<small>'+E(x.produto.familia||'Sem família')+'</small></td><td>'+F(x.pedidos.size)+'</td><td>'+F(x.pedida)+'</td><td>'+F(x.entregue)+'</td><td>'+F(x.programada)+'</td><td class="ped-rel-balance"><b>'+F(x.saldo)+'</b></td><td><button class="sec" type="button" onclick="pedRelAbrirProduto('+Number(x.produto.id)+')">Ver pedidos</button></td></tr>').join('')||'<tr><td colspan="8" class="ped-rel-muted">Nenhum item encontrado para os filtros selecionados.</td></tr>';
@@ -5638,38 +5710,86 @@ async function frJpegEtiquetaExpedicao(d,itens,pallet,total){
  const imagemQr=await mpmImagemQr(await qrPngBytes(qr));
  const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1200;
  const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas indisponível para gerar etiqueta.');
- ctx.fillStyle='#fff';ctx.fillRect(0,0,1200,1200);
- ctx.strokeStyle='#163b61';ctx.lineWidth=5;ctx.strokeRect(28,28,1144,1144);
- ctx.fillStyle='#153c61';ctx.fillRect(32,32,1136,138);
- ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 62px Arial,sans-serif';ctx.fillText('EXTRAPLAST',600,102);
- ctx.font='bold 29px Arial,sans-serif';ctx.fillText('SEPARAÇÃO FRACIONADA • EXPEDIÇÃO',600,150);
- ctx.textAlign='left';ctx.fillStyle='#172433';
- frPdfTextoLinha(ctx,'DOCUMENTO: '+d.numero_documento,66,220,1065,'bold 41px Arial,sans-serif');
- frPdfTextoLinha(ctx,'CLIENTE: '+(d.cliente||'NÃO INFORMADO'),66,268,1065,'bold 32px Arial,sans-serif');
- frPdfTextoLinha(ctx,'TRANSPORTADORA: '+(d.transportadora||'NÃO INFORMADA'),66,311,1065,'30px Arial,sans-serif');
- ctx.fillStyle='#e9f3fb';ctx.fillRect(62,335,1073,71);
- ctx.fillStyle='#123b63';frPdfTextoLinha(ctx,`PALLET ${pallet} DE ${total}`,80,381,1010,'bold 44px Arial,sans-serif');
- ctx.fillStyle='#172433';ctx.font='bold 28px Arial,sans-serif';ctx.fillText('ITENS DO DOCUMENTO (NÃO POR PALLET)',67,448);
- ctx.strokeStyle='#d7e2ed';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(64,462);ctx.lineTo(1130,462);ctx.stroke();
+ const C={azul:'#123f6b',azul2:'#184d81',azulEsc:'#0f365a',txt:'#1f2c3a',muted:'#586678',claro:'#eaf3fb',claro2:'#f5f9fc',borda:'#cdd9e4'};
+ const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()};
+ const fillR=(x,y,w,h,r,color)=>{rr(x,y,w,h,r);ctx.fillStyle=color;ctx.fill()};
+ const strokeR=(x,y,w,h,r,color,lw=2)=>{rr(x,y,w,h,r);ctx.lineWidth=lw;ctx.strokeStyle=color;ctx.stroke()};
+ const divider=(x,y,h,color='#8aa5bf',lw=3)=>{ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.lineWidth=lw;ctx.strokeStyle=color;ctx.stroke()};
+ function iconDoc(x,y,s,color){
+  ctx.strokeStyle=color;ctx.lineWidth=8;ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(x+12,y);ctx.lineTo(x+s-34,y);ctx.lineTo(x+s,y+34);ctx.lineTo(x+s,y+s);ctx.lineTo(x+12,y+s);ctx.closePath();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x+s-34,y);ctx.lineTo(x+s-34,y+34);ctx.lineTo(x+s,y+34);ctx.stroke();
+  for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(x+24,y+34+i*24);ctx.lineTo(x+s-46,y+34+i*24);ctx.stroke();}
+ }
+ function iconTruck(x,y,s,color){
+  ctx.fillStyle=color;
+  ctx.fillRect(x+18,y+34,s*0.48,s*0.26);
+  ctx.beginPath();ctx.moveTo(x+s*0.56,y+34);ctx.lineTo(x+s*0.75,y+34);ctx.lineTo(x+s*0.88,y+s*0.45);ctx.lineTo(x+s*0.88,y+s*0.6);ctx.lineTo(x+s*0.56,y+s*0.6);ctx.closePath();ctx.fill();
+  ctx.fillRect(x+8,y+s*0.24,34,12);ctx.fillRect(x+2,y+s*0.36,40,12);ctx.fillRect(x+12,y+s*0.48,30,12);
+  ctx.beginPath();ctx.arc(x+s*0.27,y+s*0.68,20,0,Math.PI*2);ctx.arc(x+s*0.69,y+s*0.68,20,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x+s*0.27,y+s*0.68,9,0,Math.PI*2);ctx.arc(x+s*0.69,y+s*0.68,9,0,Math.PI*2);ctx.fill();
+ }
+ function iconPerson(x,y,s,color){
+  ctx.fillStyle=color;ctx.beginPath();ctx.arc(x+s*0.5,y+s*0.26,s*0.18,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.moveTo(x+s*0.18,y+s*0.82);ctx.lineTo(x+s*0.82,y+s*0.82);ctx.lineTo(x+s*0.74,y+s*0.54);ctx.quadraticCurveTo(x+s*0.5,y+s*0.42,x+s*0.26,y+s*0.54);ctx.closePath();ctx.fill();
+ }
+ function iconPallet(x,y,s,color){
+  ctx.fillStyle=color;
+  ctx.fillRect(x+14,y+18,s*0.6,16);
+  ctx.fillRect(x+24,y+40,s*0.5,18);
+  ctx.fillRect(x+14,y+62,s*0.6,18);
+  ctx.fillRect(x+10,y+86,s*0.7,10);
+  ctx.fillRect(x+20,y+96,10,16);ctx.fillRect(x+52,y+96,10,16);ctx.fillRect(x+84,y+96,10,16);
+ }
+ function iconCube(x,y,s,color){
+  ctx.strokeStyle=color;ctx.lineWidth=6;ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(x+s*0.5,y+10);ctx.lineTo(x+s*0.82,y+s*0.24);ctx.lineTo(x+s*0.5,y+s*0.44);ctx.lineTo(x+s*0.18,y+s*0.24);ctx.closePath();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x+s*0.18,y+s*0.24);ctx.lineTo(x+s*0.18,y+s*0.66);ctx.lineTo(x+s*0.5,y+s*0.86);ctx.lineTo(x+s*0.82,y+s*0.66);ctx.lineTo(x+s*0.82,y+s*0.24);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x+s*0.5,y+s*0.44);ctx.lineTo(x+s*0.5,y+s*0.86);ctx.stroke();
+ }
  const totalUn=itens.reduce((n,i)=>n+Number(i.quantidade||0),0);
- // A etiqueta e pequena: listagem integral ate 9 itens, resumindo excedentes explicitamente.
- const max=9,visiveis=itens.slice(0,max);
- ctx.fillStyle='#263f58';
- visiveis.forEach((it,i)=>{
-  const yy=505+i*43;
-  const texto=`${it.codigo||'?'} • LOTE ${it.lote||'S/LOTE'} • QTD ${F(it.quantidade)}`;
-  frPdfTextoLinha(ctx,texto,72,yy,1030,'27px Arial,sans-serif');
- });
- let y=505+visiveis.length*43;
- if(itens.length>max){ctx.fillStyle='#ad452b';frPdfTextoLinha(ctx,`+ ${itens.length-max} linha(s) adicional(is) no documento`,73,y,710,'bold 25px Arial,sans-serif');}
- ctx.fillStyle='#163b61';ctx.fillRect(64,927,700,58);
- ctx.fillStyle='#fff';frPdfTextoLinha(ctx,`TOTAL DO DOCUMENTO: ${F(totalUn)} UN`,76,964,676,'bold 28px Arial,sans-serif');
- ctx.fillStyle='#516174';frPdfTextoLinha(ctx,`DOC #${d.id} | STATUS: ${d.status}`,68,1040,690,'25px Arial,sans-serif');
- frPdfTextoLinha(ctx,'Identificação do volume — não realiza baixa',68,1085,690,'23px Arial,sans-serif');
- ctx.imageSmoothingEnabled=false;ctx.drawImage(imagemQr,829,874,257,257);
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,1200,1200);
+ ctx.strokeStyle=C.azul;ctx.lineWidth=7;ctx.strokeRect(18,18,1164,1164);ctx.lineWidth=2;ctx.strokeRect(28,28,1144,1144);
+ fillR(32,32,1136,150,0,C.azul);
+ ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='bold 68px Arial,sans-serif';ctx.fillText('EXTRAPLAST',600,105);
+ ctx.font='bold 30px Arial,sans-serif';ctx.fillText('SEPARAÇÃO FRACIONADA • EXPEDIÇÃO',600,148);
+
+ fillR(48,205,1104,165,18,C.azul2);
+ iconDoc(76,254,72,'#fff');divider(202,247,88,'#b6cde2',4);
+ ctx.textAlign='left';ctx.fillStyle='#fff';ctx.font='bold 38px Arial,sans-serif';ctx.fillText('DOCUMENTO:',236,295);
+ frPdfTextoLinha(ctx,String(d.numero_documento||''),690,321,400,'bold 132px Arial,sans-serif');
+
+ fillR(48,392,1104,126,18,'#dfeef9');
+ iconTruck(70,420,108,C.azul2);divider(230,422,72,'#89a9c4',4);
+ ctx.fillStyle=C.azulEsc;ctx.font='bold 30px Arial,sans-serif';ctx.fillText('TRANSPORTADORA:',260,448);
+ frPdfTextoLinha(ctx,(d.transportadora||'NÃO INFORMADA').toUpperCase(),260,502,850,'bold 82px Arial,sans-serif');
+
+ fillR(48,542,1104,100,18,'#eef5fb');
+ iconPerson(72,560,78,C.azul2);divider(202,566,56,'#9eb6cb',4);
+ ctx.fillStyle=C.azulEsc;ctx.font='bold 26px Arial,sans-serif';ctx.fillText('CLIENTE:',236,590);
+ frPdfTextoLinha(ctx,(d.cliente||'NÃO INFORMADO').toUpperCase(),236,626,875,'bold 36px Arial,sans-serif');
+
+ fillR(48,668,1104,94,18,C.claro);
+ iconPallet(74,684,86,C.azul2);divider(224,693,46,'#8aa7c2',4);
+ frPdfTextoLinha(ctx,`PALLET ${pallet} DE ${total}`,260,734,820,'bold 64px Arial,sans-serif');
+
+ fillR(48,788,710,192,18,'#fff'); strokeR(48,788,710,192,18,C.borda,2);
+ fillR(48,788,710,52,18,C.azul2); ctx.fillStyle='#fff';ctx.font='bold 26px Arial,sans-serif';ctx.fillText('ITENS DO DOCUMENTO (NÃO POR PALLET)',72,823);
+ ctx.fillStyle=C.txt;
+ const max=5, visiveis=itens.slice(0,max);
+ visiveis.forEach((it,i)=>{const yy=888+i*30;frPdfTextoLinha(ctx,`${it.codigo||'?'} • LOTE ${it.lote||'S/LOTE'} • QTD ${F(it.quantidade)}`,72,yy,660,'28px Arial,sans-serif');});
+ if(itens.length>max){ctx.fillStyle='#a64931';frPdfTextoLinha(ctx,`+ ${itens.length-max} linha(s) adicional(is) no documento`,72,950,650,'bold 22px Arial,sans-serif');}
+
+ ctx.imageSmoothingEnabled=false;ctx.drawImage(imagemQr,802,792,310,310);
+
+ fillR(48,1002,710,62,12,C.azul2); iconCube(72,1016,34,'#fff'); divider(166,1016,32,'#d6e4f0',3); ctx.fillStyle='#fff'; frPdfTextoLinha(ctx,`TOTAL DO DOCUMENTO: ${F(totalUn)} UN`,214,1045,510,'bold 30px Arial,sans-serif');
+
+ fillR(48,1084,710,92,14,'#eef3f8'); ctx.fillStyle=C.txt; frPdfTextoLinha(ctx,`DOC #${d.id} | STATUS: ${d.status}`,72,1136,650,'bold 24px Arial,sans-serif'); ctx.fillStyle=C.muted; frPdfTextoLinha(ctx,'Identificação do volume — não realiza baixa',72,1172,650,'24px Arial,sans-serif');
+
  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Falha ao renderizar etiqueta.')),'image/jpeg',.95));
  return new Uint8Array(await blob.arrayBuffer());
 }
+
 async function frImprimirEtiquetas(){
  if(FR.enviando||FR.carregando)return toast('Aguarde a operação em andamento');
  if(!$('frId').value||!FR.original)return toast('Salve o documento fracionado antes de imprimir etiquetas');
