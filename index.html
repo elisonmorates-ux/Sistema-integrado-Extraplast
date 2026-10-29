@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.4</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.6</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -2066,6 +2066,22 @@ function axMov(t){
  axMovEmAndamento=false;axMovOperacaoUid=axNovaOperacaoUid();
  let en=t==='entrada';$('axBody').innerHTML=`<div class="box"><h3>${en?'Entrada de Material':'Consumo / Saída'}</h3><div class="form"><div><label>Item *</label><select id="axmi"><option value="">Selecione</option>${AX.i.filter(x=>x.ativo!==false).map(i=>`<option value="${i.id}">${E(i.codigo)} — ${E(i.descricao)} | saldo ${axQ(axSaldo(i.id))}</option>`).join('')}</select></div><div><label>Quantidade *</label><input id="axmq"></div><div><label>Data *</label><input id="axmd" type="date" value="${new Date().toISOString().slice(0,10)}"></div>${en?`<div><label>Fornecedor</label><select id="axmf"><option value="">Selecione</option>${AX.f.map(x=>`<option value="${x.id}">${E(x.nome)}</option>`).join('')}</select></div><div><label>Nota Fiscal</label><input id="axnf"></div><div><label>Custo unitário</label><input id="axmc"></div>`:`<div><label>Setor *</label><select id="axms" onchange="axFillCC()"><option value="">Selecione</option>${AX.set.map(x=>`<option value="${x.id}">${E(x.nome)}</option>`).join('')}</select></div><div><label>Centro de Custo</label><select id="axmcc"><option value="">Selecione o setor</option></select></div><div><label>Motivo</label><input id="axmot"></div>`}<div><label>Observação</label><input id="axmo"></div></div><div class="actions"><button class="pri" id="axMovRegistrarBtn" type="button" onclick="axSaveMov('${t}')">Registrar ${en?'entrada':'saída'}</button></div></div>`}
 function axFillCC(){let sid=N($('axms').value);$('axmcc').innerHTML='<option value="">Selecione</option>'+AX.cc.filter(x=>N(x.setor_id)===sid).map(x=>`<option value="${x.id}">${E((x.codigo?x.codigo+' — ':'')+x.nome)}</option>`).join('')}
+async function axConfirmarSessaoMovimento(){
+ // Valida a sessão no servidor antes de executar a RPC protegida.
+ // Não altera a chave da operação (proteção contra lançamentos duplicados).
+ let resposta;
+ try{resposta=await sb.auth.getUser()}catch(e){
+  toast('Não foi possível validar o login. Verifique a conexão e tente novamente. Nenhuma movimentação foi enviada.');
+  return false;
+ }
+ if(resposta.error||!resposta.data?.user){
+  const gate=$('authGate'); if(gate)gate.style.display='flex';
+  const msg=$('loginMsg'); if(msg)msg.textContent='Sua sessão expirou. Entre novamente para movimentar o Almoxarifado.';
+  toast('Sua sessão expirou. Faça login novamente antes de registrar a movimentação.');
+  return false;
+ }
+ return true;
+}
 async function axSaveMov(t){
  // Mantém a mesma chave ao repetir uma tentativa após falha de rede:
  // o banco jamais criará uma segunda movimentação para esta operação.
@@ -2097,6 +2113,7 @@ async function axSaveMov(t){
  const semelhantes=AX.m.filter(x=>N(x.item_id)===id&&x.tipo===t&&axN(x.quantidade)===q&&String(x.data_movimentacao||'').slice(0,10)===dia);
  if(semelhantes.length&&!confirm(`Já existe(m) ${semelhantes.length} movimentação(ões) de ${axQ(q)} para ${item.codigo} em ${dia}.\n\nConfirme apenas se esta for UMA NOVA entrada/saída física. Prosseguir?`))return;
  if(!axMovOperacaoUid)return toast('Identificação da operação ausente. Reabra o formulário.');
+ if(!await axConfirmarSessaoMovimento())return;
  axMovEmAndamento=true;
  const btn=$('axMovRegistrarBtn');if(btn){btn.disabled=true;btn.textContent='Registrando...'}
  try{
@@ -2109,6 +2126,18 @@ async function axSaveMov(t){
  }catch(e){
   console.error('Falha na movimentação de Almoxarifado:',e);
   let msg=String(e?.message||e);
+  if(/permission denied for function almox_registrar_movimento_seguro/i.test(msg)){
+   // A RPC pode ter recebido um token expirado; confirme antes de sugerir permissões.
+   let autenticado=false;
+   try{const resposta=await sb.auth.getUser();autenticado=!!resposta.data?.user&&!resposta.error}catch(_e){}
+   if(!autenticado){
+    if($('authGate'))$('authGate').style.display='flex';
+    if($('loginMsg'))$('loginMsg').textContent='Sessão expirada. Faça login novamente.';
+    msg='Sessão expirada. Faça login novamente antes de registrar';
+   }else{
+    msg='Seu usuário não conseguiu executar a movimentação. Refaça login; se persistir, solicite ao administrador a permissão ALTERAR no Almoxarifado';
+   }
+  }
   if(/Could not find the function|does not exist|schema cache/i.test(msg))msg='Execute o SQL V1.37.0 antes de utilizar a nova entrada.';
   toast('Movimentação não confirmada: '+msg+'. Repetir mantém a mesma chave, sem duplicar.');
   // Não trocamos axMovOperacaoUid em uma falha: pode ter gravado apesar de a resposta ter falhado.
