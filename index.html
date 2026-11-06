@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.8</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.9</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -611,10 +611,10 @@ tbody tr:hover{background:#fffaf6}
 </div>
 <div class="actions"><button class="sec" onclick="previewLotePP()">Visualizar</button><button class="pri" onclick="gerarPosicoes()">Criar posições em lote</button></div>
 <div id="gPreview" class="muted" style="margin-top:12px"></div></div></div>
-<div id="wmInv" class="wpanel" style="display:none"><div class="box"><h3>Sessão de Inventário</h3><div class="form"><div><label>Código</label><input id="invCod" placeholder="INV-OUT-2026"></div><div><label>Descrição</label><input id="invDesc"></div><div><label>Sessão aberta</label><select id="invSel" onchange="selecionarInventario()"></select></div></div><div class="actions"><button class="pri" onclick="criarInventario()">Criar Sessão</button></div></div><div class="box"><h3>Registrar Contagem</h3><div class="form"><div class="movpos-field"><label for="invEndBusca">Posição WMS</label><div class="movpos-wrap"><input type="text" id="invEndBusca" placeholder="Pesquisar posição (ex.: PP-1-1-15)" autocomplete="off" aria-label="Pesquisar posição de inventário" aria-controls="invEndResultados" aria-expanded="false" onfocus="abrirInvPos()" oninput="filtrarInvPos()" onkeydown="teclaInvPos(event)" onblur="validarInvPos()"><input id="invEnd" type="hidden"><div id="invEndResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help" id="invEndDica">Digite parte do código e selecione um endereço.</div></div><div><label>Tipo</label><select id="invTipo" onchange="preencherInvItens();preencherInvEnderecos(true)"><option value="PRODUTO_PRONTO">Produto Pronto</option><option value="MATERIA_PRIMA">Matéria-Prima</option></select></div><div><label>Item</label><select id="invItem"></select></div><div><label>Lote</label><input id="invLote"></div><div><label>Quantidade contada</label><input id="invQtd" type="number" step=".01"></div><div><label>Observação</label><input id="invObs"></div></div><div class="actions"><button id="btnRegistrarContagem" class="pri" onclick="registrarContagem()">Registrar Contagem</button></div></div><div class="box"><h3>Conferência do Inventário</h3>
+<div id="wmInv" class="wpanel" style="display:none"><div class="box"><h3>Sessão de Inventário</h3><div class="form"><div><label>Código</label><input id="invCod" placeholder="INV-OUT-2026"></div><div><label>Descrição</label><input id="invDesc"></div><div><label>Sessão aberta</label><select id="invSel" onchange="selecionarInventario()"></select></div></div><div class="actions"><button class="pri" onclick="criarInventario()">Criar Sessão</button></div></div><div class="box"><h3>Registrar Contagem</h3><div class="form"><div class="movpos-field"><label for="invEndBusca">Posição WMS</label><div class="movpos-wrap"><input type="text" id="invEndBusca" placeholder="Pesquisar posição (ex.: PP-1-1-15)" autocomplete="off" aria-label="Pesquisar posição de inventário" aria-controls="invEndResultados" aria-expanded="false" onfocus="abrirInvPos()" oninput="filtrarInvPos()" onkeydown="teclaInvPos(event)" onblur="validarInvPos()"><input id="invEnd" type="hidden"><div id="invEndResultados" class="movpos-results" role="listbox"></div></div><div class="movpos-help" id="invEndDica">Digite parte do código e selecione um endereço.</div></div><div><label>Tipo</label><select id="invTipo" onchange="preencherInvItens();preencherInvEnderecos(true)"><option value="PRODUTO_PRONTO">Produto Pronto</option><option value="MATERIA_PRIMA">Matéria-Prima</option></select></div><div><label>Item</label><select id="invItem"></select></div><div><label>Lote</label><input id="invLote"></div><div><label>Quantidade contada</label><input id="invQtd" type="number" step=".01"></div><div><label>Observação</label><input id="invObs"></div></div><div class="actions"><button id="btnRegistrarContagem" class="pri" onclick="registrarContagem()">Adicionar item à contagem</button><button id="btnRegistrarPosicaoVazia" class="sec" onclick="registrarPosicaoVazia()">Registrar posição vazia</button></div></div><div class="box"><h3>Conferência por posição</h3><p class="muted">Aprovar uma posição confirma a contagem física completa daquele endereço. Produtos e lotes do sistema que não estiverem na contagem terão o saldo zerado somente nessa posição.</p><div class="tw"><table><thead><tr><th>Posição</th><th>Tipo</th><th>Itens/lotes contados</th><th>Itens/lotes não informados</th><th>Status</th><th>Ação</th></tr></thead><tbody id="invPosicoesLista"></tbody></table></div></div><div class="box"><h3>Detalhes das contagens</h3>
 <div class="actions"><button class="sec" onclick="listarContagens()">Atualizar Conferência</button><button class="pri" onclick="finalizarInventario()">Finalizar Inventário</button></div>
-<div class="tw"><table><thead><tr><th>Posição</th><th>Tipo</th><th>Item</th><th>Lote</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead><tbody id="invLista"></tbody></table></div>
-<p class="muted">Aprovar Ajuste altera o estoque oficial. Finalizar Inventário somente funciona quando todas as contagens estiverem aprovadas.</p></div></div>
+<div class="tw"><table><thead><tr><th>Posição</th><th>Tipo</th><th>Item</th><th>Lote</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th><th>Conferência da posição</th></tr></thead><tbody id="invLista"></tbody></table></div>
+<p class="muted">Aprovar posição altera o estoque oficial e zera os itens/lotes não encontrados naquele endereço. O inventário só pode ser finalizado depois que todas as posições registradas forem aprovadas.</p></div></div>
 <div id="wmsMP" style="display:none">
 <div class="box"><h3>WMS · Matéria-Prima</h3><p>Endereçamento independente do estoque <b>MP</b>. Padrão: <b>MP-COLUNA-ANDAR-POSIÇÃO</b>.</p></div>
 <div class="tabs localWmsNav" data-local="MP"><button class="tab on" onclick="abrirPainelLocal('MP','mapa',this)">Mapa / Posições</button><button class="tab" onclick="abrirPainelLocal('MP','lote',this)">Cadastro em Lote</button><button class="tab" onclick="abrirPainelLocal('MP','inv',this)">Inventário WMS</button></div>
@@ -958,7 +958,7 @@ function navMain(p,b){
  if(p!=='producao')opxPararCamera();if(p!=='mov'){ppqrPararCamera();mpbPararCamera();}if(p==='mov')movVoltarInicio();if(p==='producao'&&sb)opxAbrirModulo();if(p==='recebimento' && sb){renderRecebimentoMP();rfcListar()}if(p==='est')stockView('PP',document.querySelector('#est .tab'));if(p==='rel')relAbrir();if(p==='cargas')cargasSubmenu('inicio');if(p==='almox' && sb) axPage('dashboard').catch(e=>{console.error(e);toast('Erro ao abrir Almoxarifado: '+e.message)});
  uiSelecionarModulo(p);
 }
-let produtos=[],mps=[],locais=[],ends=[],pp=[],emp=[],vincs=[],pedidos=[],pits=[],cargas=[],inventarios=[],contagens=[],correcoes=[],reservasPP=[],cargaItensDB=[],separacoesCarga=[],cargaBaixasQR=[],inventarioAtivoId=0;
+let produtos=[],mps=[],locais=[],ends=[],pp=[],emp=[],vincs=[],pedidos=[],pits=[],cargas=[],inventarios=[],contagens=[],inventarioPosicoes=[],correcoes=[],reservasPP=[],cargaItensDB=[],separacoesCarga=[],cargaBaixasQR=[],inventarioAtivoId=0;
 let AX={i:[],m:[],c:[],f:[],set:[],cc:[]};
 function toast(x){$('toast').textContent=x;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2200)}
 document.querySelectorAll('.tab[data-pane]').forEach(b=>b.onclick=()=>{let p=b.closest('.page');p.querySelectorAll('.tab[data-pane],.pane').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.pane).classList.add('on');if(b.dataset.pane==='cadcli'||b.dataset.pane==='cadtrans')frCarregarCadastros().catch(e=>toast('Cadastros: '+e.message));});
@@ -977,9 +977,9 @@ async function Q(t){
  }
 }function O(a,txt='nome'){return '<option value="">Selecione...</option>'+a.map(x=>`<option value="${x.id}">${E(x[txt])}</option>`).join('')}
 async function load(){
- const nomes=['itens_carga','materias_primas','locais_estoque','enderecos_wms','estoque_produto_pronto','estoque_mp','estoque_pa','mp_produtos','pedidos','pedido_itens','cargas','inventarios_wms','inventario_wms_itens','correcoes_estoque_wms','pedido_reservas_pp','carga_itens','carga_separacoes_pp','carga_baixas_qr'];
+ const nomes=['itens_carga','materias_primas','locais_estoque','enderecos_wms','estoque_produto_pronto','estoque_mp','estoque_pa','mp_produtos','pedidos','pedido_itens','cargas','inventarios_wms','inventario_wms_itens','inventario_wms_posicoes','correcoes_estoque_wms','pedido_reservas_pp','carga_itens','carga_separacoes_pp','carga_baixas_qr'];
  const resultados=await Promise.all(nomes.map(async t=>{try{return {t,data:await Q(t),error:null}}catch(error){console.error('Falha em '+t,error);return {t,data:[],error}}}));
- const criticas=new Set(['itens_carga','materias_primas','locais_estoque','enderecos_wms','estoque_produto_pronto','estoque_mp','estoque_pa']);
+ const criticas=new Set(['itens_carga','materias_primas','locais_estoque','enderecos_wms','estoque_produto_pronto','estoque_mp','estoque_pa','inventario_wms_posicoes']);
  const falhasCriticas=resultados.filter(r=>r.error&&criticas.has(r.t));
  if(falhasCriticas.length){
   const detalhe=falhasCriticas.map(r=>`${r.t}: ${r.error.message}`).join(' | ');
@@ -990,7 +990,7 @@ async function load(){
  }
  PED_REL_DADOS_OK=!resultados.some(r=>r.error&&(r.t==='pedidos'||r.t==='pedido_itens'));
  const map=Object.fromEntries(resultados.map(r=>[r.t,r.data]));
- produtos=map.itens_carga;mps=map.materias_primas;locais=map.locais_estoque;ends=map.enderecos_wms;pp=map.estoque_produto_pronto;emp=map.estoque_mp;epa=map.estoque_pa||[];vincs=map.mp_produtos;pedidos=map.pedidos;pits=map.pedido_itens;cargas=map.cargas;inventarios=map.inventarios_wms;contagens=map.inventario_wms_itens;correcoes=map.correcoes_estoque_wms;reservasPP=map.pedido_reservas_pp;cargaItensDB=map.carga_itens;separacoesCarga=map.carga_separacoes_pp;cargaBaixasQR=map.carga_baixas_qr||[];
+ produtos=map.itens_carga;mps=map.materias_primas;locais=map.locais_estoque;ends=map.enderecos_wms;pp=map.estoque_produto_pronto;emp=map.estoque_mp;epa=map.estoque_pa||[];vincs=map.mp_produtos;pedidos=map.pedidos;pits=map.pedido_itens;cargas=map.cargas;inventarios=map.inventarios_wms;contagens=map.inventario_wms_itens;inventarioPosicoes=map.inventario_wms_posicoes;correcoes=map.correcoes_estoque_wms;reservasPP=map.pedido_reservas_pp;cargaItensDB=map.carga_itens;separacoesCarga=map.carga_separacoes_pp;cargaBaixasQR=map.carga_baixas_qr||[];
  try{render()}catch(e){console.error('Erro de renderização',e);toast('Erro de tela: '+e.message)}
  let falhas=resultados.filter(r=>r.error);
  if(!falhas.length){$('conn').textContent='Banco conectado';$('conn').title='Todas as tabelas carregadas'}
@@ -2989,6 +2989,7 @@ function atualizarEstadoInventario(){
   let inv=inventarios.find(x=>x.id===inventarioAtivoId);
   let aberto=!!inv&&inv.status==='ABERTO';
   if($('btnRegistrarContagem')) $('btnRegistrarContagem').disabled=!aberto;
+   if($('btnRegistrarPosicaoVazia')) $('btnRegistrarPosicaoVazia').disabled=!aberto;
 }
 async function criarInventario(){let codigo=$('invCod').value.trim();if(!codigo)return toast('Informe o código');let {data,error}=await sb.from('inventarios_wms').insert({codigo,descricao:$('invDesc').value,status:'ABERTO'}).select().single();if(error)return toast(error.message);inventarioAtivoId=data.id;toast('Inventário criado');load()}
 // Inventário V1.35.5: pesquisa de endereços WMS por código e tipo de estoque.
@@ -3040,7 +3041,22 @@ function teclaInvPos(event){
  }
 }
 function preencherInvItens(){if(!$('invItem'))return;if($('invTipo').value==='MATERIA_PRIMA')$('invItem').innerHTML=opt(mps,'id','descricao');else $('invItem').innerHTML='<option value="">Selecione...</option>'+produtos.map(x=>`<option value="${x.id}">${E(x.codigo+' · '+x.descricao)}</option>`).join('')}
-async function registrarContagem(){let iid=inventarioAtivoId||N($('invSel').value),inv=inventarios.find(x=>x.id===iid);if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão de inventário aberta');inventarioAtivoId=iid;let o={inventario_id:iid,endereco_wms_id:N($('invEnd').value),tipo_estoque:$('invTipo').value,item_id:N($('invItem').value),lote:$('invLote').value||null,quantidade_contada:N($('invQtd').value),observacao:$('invObs').value||null};if(!o.endereco_wms_id||!o.item_id)return toast('Selecione uma posição na pesquisa e um item');if(!invPosLista.some(x=>Number(x.id)===o.endereco_wms_id))return toast('A posição selecionada não pertence ao tipo de estoque informado');let {error}=await sb.from('inventario_wms_itens').insert(o);if(error)return toast(error.message);toast('Contagem registrada');load()}
+async function registrarContagem(){
+  let iid=inventarioAtivoId||N($('invSel').value),inv=inventarios.find(x=>x.id===iid);
+  if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão de inventário aberta');
+  inventarioAtivoId=iid;
+  let o={endereco_wms_id:N($('invEnd').value),tipo_estoque:$('invTipo').value,item_id:N($('invItem').value),lote:$('invLote').value||null,quantidade_contada:N($('invQtd').value),observacao:$('invObs').value||null};
+  if(!o.endereco_wms_id||!o.item_id)return toast('Selecione uma posição e um item');
+  if(!invPosLista.some(x=>Number(x.id)===o.endereco_wms_id))return toast('A posição selecionada não pertence ao tipo de estoque informado');
+  const {error}=await sb.rpc('registrar_contagem_wms',{
+    p_inventario_id:iid,p_endereco_wms_id:o.endereco_wms_id,p_tipo_estoque:o.tipo_estoque,
+    p_item_id:o.item_id,p_lote:o.lote,p_quantidade:o.quantidade_contada,p_observacao:o.observacao
+  });
+  if(error)return toast(error.message);
+  $('invItem').value='';$('invLote').value='';$('invQtd').value='';$('invObs').value='';
+  toast('Contagem registrada. Quantidades repetidas do mesmo item/lote são somadas.');
+  await load();
+}
 function saldoContagem(x){
   let lista=x.tipo_estoque==='MATERIA_PRIMA'?emp:pp;
   return lista.filter(y=>{
@@ -3048,31 +3064,77 @@ function saldoContagem(x){
     return itemOk && y.endereco_wms_id===x.endereco_wms_id && String(y.lote||'')===String(x.lote||'');
   }).reduce((a,y)=>a+N(y.quantidade),0);
 }
+function chaveGrupoInventario(item,lote){return String(N(item))+'|'+String(lote||'');}
+function resumoPosicaoInventario(p){
+  let linhas=contagens.filter(x=>N(x.inventario_id)===N(p.inventario_id)&&N(x.endereco_wms_id)===N(p.endereco_wms_id)&&x.tipo_estoque===p.tipo_estoque);
+  let gruposContados=new Set(linhas.map(x=>chaveGrupoInventario(x.item_id,x.lote)));
+  let estoque=p.tipo_estoque==='MATERIA_PRIMA'?emp:pp;
+  let gruposSistema=new Map();
+  estoque.filter(x=>N(x.endereco_wms_id)===N(p.endereco_wms_id)&&(N(x.quantidade)>0||N(x.reservado)>0||N(x.bloqueado)>0)).forEach(x=>{
+    let item=p.tipo_estoque==='MATERIA_PRIMA'?x.materia_prima_id:x.produto_id;
+    let chave=chaveGrupoInventario(item,x.lote),atual=gruposSistema.get(chave)||{item_id:item,lote:x.lote,q:0};
+    atual.q+=N(x.quantidade);gruposSistema.set(chave,atual);
+  });
+  let faltantes=[...gruposSistema.entries()].filter(([chave])=>!gruposContados.has(chave)).map(([,x])=>x);
+  return {linhas:linhas.length,grupos:gruposContados.size,faltantes:faltantes.length,qtdFaltante:faltantes.reduce((a,x)=>a+N(x.q),0)};
+}
 function listarContagens(){
   if(!$('invLista'))return;
-  let iid=inventarioAtivoId||N($('invSel')?.value),em=new Map(ends.map(x=>[x.id,x.codigo])),pm=new Map(produtos.map(x=>[x.id,x])),mm=new Map(mps.map(x=>[x.id,x]));
-  let a=iid?contagens.filter(x=>x.inventario_id===iid):[];
+  let iid=inventarioAtivoId||N($('invSel')?.value),em=new Map(ends.map(x=>[N(x.id),x.codigo])),pm=new Map(produtos.map(x=>[N(x.id),x])),mm=new Map(mps.map(x=>[N(x.id),x]));
+  let posicoes=iid?inventarioPosicoes.filter(x=>N(x.inventario_id)===iid):[];
+  posicoes.sort((a,b)=>String(em.get(N(a.endereco_wms_id))||'').localeCompare(String(em.get(N(b.endereco_wms_id))||''),'pt-BR',{numeric:true}));
+  $('invPosicoesLista').innerHTML=posicoes.map(p=>{
+    let r=resumoPosicaoInventario(p),nome=em.get(N(p.endereco_wms_id))||'Posição '+p.endereco_wms_id;
+    let tipoNome=p.tipo_estoque==='MATERIA_PRIMA'?'Matéria-prima':'Produto pronto';
+    let st=p.status==='APROVADO'?'<span class="badge g">Aprovada</span>':'<span class="badge a">Em contagem</span>';
+    let ausentes=r.faltantes?'<b>'+r.faltantes+'</b> grupo(s) · '+F(r.qtdFaltante)+' un. serão zerados':'Nenhum saldo do sistema ficará sem conferência';
+    let acao=p.status==='APROVADO'?'<span class="badge g">Concluída</span>':'<button class="pri" onclick="aprovarPosicaoInventario('+N(p.inventario_id)+','+N(p.endereco_wms_id)+',\''+E(p.tipo_estoque)+'\')">Aprovar posição completa</button>';
+    return '<tr><td><b>'+E(nome)+'</b></td><td>'+tipoNome+'</td><td>'+r.grupos+' grupo(s) · '+r.linhas+' lançamento(s)</td><td>'+ausentes+'</td><td>'+st+'</td><td>'+acao+'</td></tr>';
+  }).join('')||'<tr><td colspan="6">Nenhuma posição registrada nesta sessão. Selecione uma posição e registre itens ou marque uma posição vazia.</td></tr>';
+  let a=iid?contagens.filter(x=>N(x.inventario_id)===iid):[];
   $('invLista').innerHTML=a.map(x=>{
-    let it=x.tipo_estoque==='MATERIA_PRIMA'?mm.get(x.item_id):pm.get(x.item_id);
+    let it=x.tipo_estoque==='MATERIA_PRIMA'?mm.get(N(x.item_id)):pm.get(N(x.item_id));
     let sis=x.status==='APROVADO'&&x.quantidade_sistema!=null?N(x.quantidade_sistema):saldoContagem(x);
     let dif=x.status==='APROVADO'&&x.diferenca!=null?N(x.diferenca):N(x.quantidade_contada)-sis;
     let st=x.status||'PENDENTE';
-    let acao=st==='APROVADO'?'<span class="badge g">Aprovado</span>':`<button class="pri" onclick="aprovarContagem(${x.id})">Aprovar Ajuste</button>`;
-    return `<tr><td>${E(em.get(x.endereco_wms_id))}</td><td>${E(x.tipo_estoque)}</td><td>${E(it?.codigo)} · ${E(it?.descricao)}</td><td>${E(x.lote)}</td><td>${F(sis)}</td><td>${F(x.quantidade_contada)}</td><td><b>${dif>0?'+':''}${F(dif)}</b></td><td><span class="badge ${st==='APROVADO'?'g':'a'}">${E(st)}</span></td><td>${acao}</td></tr>`
-  }).join('');
+    let acao=st==='APROVADO'?'<span class="badge g">Aprovado</span>':'<span class="muted">Aguardando aprovação da posição</span>';
+    return '<tr><td>'+E(em.get(N(x.endereco_wms_id)))+'</td><td>'+E(x.tipo_estoque)+'</td><td>'+E(it?.codigo)+' · '+E(it?.descricao)+'</td><td>'+E(x.lote)+'</td><td>'+F(sis)+'</td><td>'+F(x.quantidade_contada)+'</td><td><b>'+(dif>0?'+':'')+F(dif)+'</b></td><td><span class="badge '+(st==='APROVADO'?'g':'a')+'">'+E(st)+'</span></td><td>'+acao+'</td></tr>';
+  }).join('')||'<tr><td colspan="9">Nenhuma contagem registrada nesta sessão.</td></tr>';
+}
+async function registrarPosicaoVazia(){
+  let iid=inventarioAtivoId||N($('invSel').value),inv=inventarios.find(x=>N(x.id)===iid);
+  let endereco=N($('invEnd').value),tipo=$('invTipo').value;
+  if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão de inventário aberta');
+  if(!endereco||!invPosLista.some(x=>N(x.id)===endereco))return toast('Selecione uma posição válida');
+  if(contagens.some(x=>N(x.inventario_id)===iid&&N(x.endereco_wms_id)===endereco&&x.tipo_estoque===tipo))return toast('Esta posição já possui itens contados. Continue a contagem ou aprove a posição.');
+  const {error}=await sb.rpc('registrar_posicao_inventario_wms',{p_inventario_id:iid,p_endereco_wms_id:endereco,p_tipo_estoque:tipo});
+  if(error)return toast(error.message);
+  toast('Posição vazia registrada. Ao aprová-la, todo saldo atual desse endereço será zerado.');
+  await load();
+}
+async function aprovarPosicaoInventario(iid,endereco,tipo){
+  let p=inventarioPosicoes.find(x=>N(x.inventario_id)===N(iid)&&N(x.endereco_wms_id)===N(endereco)&&x.tipo_estoque===tipo);
+  let r=p?resumoPosicaoInventario(p):{faltantes:0,qtdFaltante:0};
+  let nome=ends.find(x=>N(x.id)===N(endereco))?.codigo||('Posição '+endereco);
+  let mensagem='Aprovar a contagem física completa da posição '+nome+'?\n\n'+
+    (r.faltantes>0?('Existem '+r.faltantes+' grupo(s) de produto/lote no sistema que não aparecem na contagem. O saldo de '+F(r.qtdFaltante)+' unidade(s) será zerado nesta posição.\n\n'):'Não há saldo do sistema sem correspondência na contagem.\n\n')+
+    'A alteração ficará registrada no histórico e não afetará outras posições. Continuar?';
+  if(!confirm(mensagem))return;
+  const {data,error}=await sb.rpc('aprovar_posicao_inventario_wms',{p_inventario_id:iid,p_endereco_wms_id:endereco,p_tipo_estoque:tipo});
+  if(error)return toast(error.message);
+  toast('Posição '+nome+' aprovada. '+N(data?.itens_zerados)+' grupo(s) de item/lote zerado(s).');
+  await load();
 }
 async function aprovarContagem(id){
-  if(!confirm('Aprovar esta contagem e ajustar o estoque oficial?'))return;
-  let {data,error}=await sb.rpc('aprovar_contagem_wms',{p_contagem_id:id});
-  if(error)return toast(error.message);
-  toast('Ajuste aprovado. Estoque oficial atualizado.');
-  await load();
+  let x=contagens.find(y=>N(y.id)===N(id));
+  if(!x)return toast('Contagem não encontrada');
+  return aprovarPosicaoInventario(x.inventario_id,x.endereco_wms_id,x.tipo_estoque);
 }
 async function finalizarInventario(){
   let id=inventarioAtivoId||N($('invSel').value);
   if(!id)return toast('Selecione uma sessão de inventário');
   inventarioAtivoId=id;
-  if(!confirm('Finalizar este inventário? Após finalizar, ele não aceitará novas aprovações.'))return;
+  if(!confirm('Finalizar este inventário? Todas as posições registradas precisam estar aprovadas. Depois de finalizado, não aceitará novas contagens.'))return;
   let {data,error}=await sb.rpc('finalizar_inventario_wms',{p_inventario_id:id});
   if(error)return toast(error.message);
   toast('Inventário finalizado');
