@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.9</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.10</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -3091,14 +3091,27 @@ function listarContagens(){
     let acao=p.status==='APROVADO'?'<span class="badge g">Concluída</span>':'<button class="pri" onclick="aprovarPosicaoInventario('+N(p.inventario_id)+','+N(p.endereco_wms_id)+',\''+E(p.tipo_estoque)+'\')">Aprovar posição completa</button>';
     return '<tr><td><b>'+E(nome)+'</b></td><td>'+tipoNome+'</td><td>'+r.grupos+' grupo(s) · '+r.linhas+' lançamento(s)</td><td>'+ausentes+'</td><td>'+st+'</td><td>'+acao+'</td></tr>';
   }).join('')||'<tr><td colspan="6">Nenhuma posição registrada nesta sessão. Selecione uma posição e registre itens ou marque uma posição vazia.</td></tr>';
-  let a=iid?contagens.filter(x=>N(x.inventario_id)===iid):[];
-  $('invLista').innerHTML=a.map(x=>{
-    let it=x.tipo_estoque==='MATERIA_PRIMA'?mm.get(N(x.item_id)):pm.get(N(x.item_id));
-    let sis=x.status==='APROVADO'&&x.quantidade_sistema!=null?N(x.quantidade_sistema):saldoContagem(x);
-    let dif=x.status==='APROVADO'&&x.diferenca!=null?N(x.diferenca):N(x.quantidade_contada)-sis;
-    let st=x.status||'PENDENTE';
-    let acao=st==='APROVADO'?'<span class="badge g">Aprovado</span>':'<span class="muted">Aguardando aprovação da posição</span>';
-    return '<tr><td>'+E(em.get(N(x.endereco_wms_id)))+'</td><td>'+E(x.tipo_estoque)+'</td><td>'+E(it?.codigo)+' · '+E(it?.descricao)+'</td><td>'+E(x.lote)+'</td><td>'+F(sis)+'</td><td>'+F(x.quantidade_contada)+'</td><td><b>'+(dif>0?'+':'')+F(dif)+'</b></td><td><span class="badge '+(st==='APROVADO'?'g':'a')+'">'+E(st)+'</span></td><td>'+acao+'</td></tr>';
+  let a=iid?contagens.filter(x=>N(x.inventario_id)===iid):[],agrupados=new Map();
+  a.forEach(x=>{
+    let chave=N(x.endereco_wms_id)+'|'+x.tipo_estoque+'|'+N(x.item_id)+'|'+String(x.lote||'');
+    let g=agrupados.get(chave);
+    if(!g){g={base:x,linhas:[],quantidade_contada:0};agrupados.set(chave,g);}
+    g.linhas.push(x);g.quantidade_contada+=N(x.quantidade_contada);
+  });
+  let detalhe=[...agrupados.values()].sort((a,b)=>{
+    let pa=String(em.get(N(a.base.endereco_wms_id))||''),pb=String(em.get(N(b.base.endereco_wms_id))||'');
+    return pa.localeCompare(pb,'pt-BR',{numeric:true})||N(a.base.item_id)-N(b.base.item_id);
+  });
+  $('invLista').innerHTML=detalhe.map(g=>{
+    let x=g.base,it=x.tipo_estoque==='MATERIA_PRIMA'?mm.get(N(x.item_id)):pm.get(N(x.item_id));
+    let pos=inventarioPosicoes.find(p=>N(p.inventario_id)===iid&&N(p.endereco_wms_id)===N(x.endereco_wms_id)&&p.tipo_estoque===x.tipo_estoque);
+    let aprovado=pos?.status==='APROVADO';
+    let canonica=g.linhas.slice().sort((a,b)=>N(a.id)-N(b.id))[0];
+    let sis=aprovado&&canonica.quantidade_sistema!=null?N(canonica.quantidade_sistema):saldoContagem(canonica);
+    let dif=aprovado&&canonica.diferenca!=null?N(canonica.diferenca):g.quantidade_contada-sis;
+    let st=aprovado?'APROVADO':'PENDENTE';
+    let acao=aprovado?'<span class="badge g">Aprovado por posição</span>':'<span class="muted">Aguardando aprovação da posição</span>';
+    return '<tr><td>'+E(em.get(N(x.endereco_wms_id)))+'</td><td>'+E(x.tipo_estoque)+'</td><td>'+E(it?.codigo)+' · '+E(it?.descricao)+'</td><td>'+E(x.lote)+'</td><td>'+F(sis)+'</td><td>'+F(g.quantidade_contada)+'</td><td><b>'+(dif>0?'+':'')+F(dif)+'</b></td><td><span class="badge '+(aprovado?'g':'a')+'">'+E(st)+'</span></td><td>'+acao+'</td></tr>';
   }).join('')||'<tr><td colspan="9">Nenhuma contagem registrada nesta sessão.</td></tr>';
 }
 async function registrarPosicaoVazia(){
