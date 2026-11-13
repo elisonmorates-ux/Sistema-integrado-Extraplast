@@ -1956,7 +1956,9 @@ function confAtualizarInfoLote(){
  const aviso=confSaldoSemLote>0?` ${F(confSaldoSemLote)} unidades sem lote cadastrado não serão usadas nesta conferência.`:'';
  if(info)info.textContent=item
   ?`Saldo disponível no lote ${item.lote}: ${F(item.saldo)} unidades.${item.posicoes.size?' Posições: '+[...item.posicoes].join(', ')+'.':''}${aviso}`
-  :`Selecione o lote físico que está sendo carregado.${aviso}`;
+  :confLotesDisponiveis.length
+   ?`Selecione o lote físico que está sendo carregado.${aviso}`
+   :`Nenhum lote com saldo disponível foi encontrado para este produto.${aviso}`;
  const btn=$('confBtnConfirmar');if(btn)btn.disabled=!confLotesDisponiveis.length;
 }
 
