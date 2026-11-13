@@ -1991,8 +1991,8 @@ async function confirmarPalletCarregado(){
  const foto=$('confFoto').files?.[0];if(!foto)return toast('Tire ou anexe a foto do pallet dentro do caminhão');
  const faltaAutomatica=Math.max(0,quantidade-saldoLote);
  const texto=quantidade===N(ci.quantidade)?`Confirma ${F(quantidade)} unidades carregadas?`:`Atenção: programado ${F(ci.quantidade)}, conferido ${F(quantidade)}. A diferença NÃO será descontada. Confirmar?`;
- const detalheEntrada=autorizarEntrada&&faltaAutomatica>0?`\\nSerá registrada ENTRADA AUTOMÁTICA de ${F(faltaAutomatica)} unidades no PP, lote ${lote}, e a mesma quantidade será baixada nesta operação.`:'';
- if(!confirm(`${texto}\\n\\nLote de origem: ${lote}.${detalheEntrada}\\nBaixa total: ${F(quantidade)} unidades do PP${ci.pedido_item_id?' e atualização do SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
+ const detalheEntrada=autorizarEntrada&&faltaAutomatica>0?`\nSerá registrada ENTRADA AUTOMÁTICA de ${F(faltaAutomatica)} unidades no PP, lote ${lote}, e a mesma quantidade será baixada nesta operação.`:'';
+ if(!confirm(`${texto}\n\nLote de origem: ${lote}.${detalheEntrada}\nBaixa total: ${F(quantidade)} unidades do PP${ci.pedido_item_id?' e atualização do SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
  confEnviando=true;const btn=$('confBtnConfirmar');if(btn)btn.disabled=true;
  let nomeFoto='',baixaConcluida=false;
  try{
