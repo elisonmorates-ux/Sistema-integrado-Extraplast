@@ -678,6 +678,11 @@ tbody tr:hover{background:#fffaf6}
   <div id="confPalletDados"></div>
   <div class="form" style="margin-top:12px">
    <div><label>Lote de origem *</label><select id="confLote" onchange="confAtualizarInfoLote()"><option value="">Selecione o lote...</option></select><span id="confLoteInfo" class="muted">Selecione o lote físico que está sendo carregado.</span></div>
+   <div style="grid-column:1/-1">
+    <label style="display:flex;align-items:center;gap:8px"><input id="confEntradaAuto" type="checkbox" onchange="confAtualizarInfoLote()" style="width:auto"> Autorizar entrada automática no PP para cobrir a quantidade que faltar</label>
+    <input id="confLoteAuto" placeholder="Informe o lote físico para a entrada automática" oninput="confAtualizarInfoLote()" style="display:none;margin-top:8px">
+    <span class="muted">A entrada será registrada em uma posição PP livre e baixada na mesma operação. Informe o lote real do material.</span>
+   </div>
    <div><label>Quantidade realmente carregada *</label><input id="confQtd" type="number" min="0.01" step="0.01" inputmode="decimal"><span class="muted">Confira a quantidade do pallet. A baixa será feita somente após confirmar.</span></div>
    <div><label>Foto do pallet dentro do caminhão *</label><input id="confFoto" type="file" accept="image/*" capture="environment"></div>
    <div><label>Observação</label><input id="confObs" placeholder="Opcional"></div>
@@ -1924,42 +1929,27 @@ async function confCarregarLotesConferencia(produtoId){
  if(!sel)throw new Error('Campo de lote não encontrado');
  sel.disabled=true;sel.innerHTML='<option value="">Consultando lotes...</option>';
  if(info)info.textContent='Consultando saldo disponível do produto...';
- const {data,error}=await sb.from('estoque_produto_pronto')
-  .select('lote,quantidade,reservado,bloqueado,endereco_wms_id')
-  .eq('produto_id',produtoId).gt('quantidade',0);
+ const {data,error}=await sb.from('estoque_produto_pronto').select('lote,quantidade,reservado,bloqueado,endereco_wms_id').eq('produto_id',produtoId).gt('quantidade',0);
  if(error)throw error;
  const mapa=new Map();let semLote=0;
  for(const r of data||[]){
-  const saldo=Math.max(0,N(r.quantidade)-N(r.reservado)-N(r.bloqueado));
-  if(saldo<=0)continue;
-  const lote=String(r.lote??'');
-  if(!lote.trim()){semLote+=saldo;continue;}
-  let item=mapa.get(lote);
-  if(!item){item={lote,saldo:0,posicoes:new Set()};mapa.set(lote,item);}
-  item.saldo+=saldo;
-  const endereco=ends.find(e=>N(e.id)===N(r.endereco_wms_id));
-  if(endereco?.codigo)item.posicoes.add(endereco.codigo);
+  const saldo=Math.max(0,N(r.quantidade)-N(r.reservado)-N(r.bloqueado));if(saldo<=0)continue;
+  const lote=String(r.lote??'');if(!lote.trim()){semLote+=saldo;continue;}
+  let item=mapa.get(lote);if(!item){item={lote,saldo:0,posicoes:new Set()};mapa.set(lote,item);}item.saldo+=saldo;
+  const endereco=ends.find(e=>N(e.id)===N(r.endereco_wms_id));if(endereco?.codigo)item.posicoes.add(endereco.codigo);
  }
- confLotesDisponiveis=[...mapa.values()].sort((a,b)=>a.lote.localeCompare(b.lote,'pt-BR',{numeric:true}));
- confSaldoSemLote=semLote;
- sel.innerHTML='<option value="">Selecione o lote de origem...</option>'+confLotesDisponiveis.map(x=>
-  `<option value="${E(x.lote)}">${E(x.lote)} · disponível: ${F(x.saldo)}${x.posicoes.size?' · '+E([...x.posicoes].join(', ')):''}</option>`
- ).join('');
+ confLotesDisponiveis=[...mapa.values()].sort((a,b)=>a.lote.localeCompare(b.lote,'pt-BR',{numeric:true}));confSaldoSemLote=semLote;
+ sel.innerHTML='<option value="">Selecione o lote de origem...</option>'+confLotesDisponiveis.map(x=>`<option value="${E(x.lote)}">${E(x.lote)} · disponível: ${F(x.saldo)}${x.posicoes.size?' · '+E([...x.posicoes].join(', ')):''}</option>`).join('');
  sel.disabled=!confLotesDisponiveis.length;
- const btn=$('confBtnConfirmar');if(btn)btn.disabled=!confLotesDisponiveis.length;
+ const chk=$('confEntradaAuto');if(chk)chk.checked=false;const inp=$('confLoteAuto');if(inp)inp.value='';
  confAtualizarInfoLote();
 }
 function confAtualizarInfoLote(){
- const lote=$('confLote')?.value||'';
- const item=confLotesDisponiveis.find(x=>x.lote===lote);
- const info=$('confLoteInfo');
- const aviso=confSaldoSemLote>0?` ${F(confSaldoSemLote)} unidades sem lote cadastrado não serão usadas nesta conferência.`:'';
- if(info)info.textContent=item
-  ?`Saldo disponível no lote ${item.lote}: ${F(item.saldo)} unidades.${item.posicoes.size?' Posições: '+[...item.posicoes].join(', ')+'.':''}${aviso}`
-  :confLotesDisponiveis.length
-   ?`Selecione o lote físico que está sendo carregado.${aviso}`
-   :`Nenhum lote com saldo disponível foi encontrado para este produto.${aviso}`;
- const btn=$('confBtnConfirmar');if(btn)btn.disabled=!confLotesDisponiveis.length;
+ const lote=$('confLote')?.value||'',item=confLotesDisponiveis.find(x=>x.lote===lote),auto=$('confEntradaAuto')?.checked===true,novo=$('confLoteAuto');
+ if(novo)novo.style.display=auto&&!lote?'block':'none';
+ const aviso=confSaldoSemLote>0?` ${F(confSaldoSemLote)} unidades sem lote cadastrado não serão usadas automaticamente.`:'',info=$('confLoteInfo');
+ if(info)info.textContent=item?`Saldo disponível no lote ${item.lote}: ${F(item.saldo)} unidades.${item.posicoes.size?' Posições: '+[...item.posicoes].join(', ')+'.':''}${auto?' O sistema poderá registrar automaticamente apenas a diferença que faltar.':''}${aviso}`:confLotesDisponiveis.length?`Selecione o lote físico que está sendo carregado.${auto?' Se o saldo não cobrir a quantidade, a diferença será registrada automaticamente.':''}${aviso}`:auto?'Informe o lote físico no campo abaixo. A entrada será lançada em uma posição PP livre e baixada na mesma operação.':'Nenhum lote com saldo disponível foi encontrado. Para continuar, autorize a entrada automática e informe o lote físico.';
+ const btn=$('confBtnConfirmar');if(btn)btn.disabled=!(lote||(auto&&String(novo?.value||'').trim()));
 }
 
 async function selecionarQrCarga(texto){
@@ -1991,14 +1981,18 @@ async function confirmarPalletCarregado(){
  if(confRegistros.some(x=>N(x.carga_item_id)===N(ci.id)))return toast('Este pallet já foi conferido');
  const quantidade=N($('confQtd').value);
  if(!Number.isFinite(quantidade)||quantidade<=0||quantidade>N(ci.quantidade))return toast(`Confira a quantidade: deve ser maior que zero e no máximo ${F(ci.quantidade)}`);
- const lote=String($('confLote').value||'');
- if(!lote.trim())return toast('Selecione o lote de origem antes de confirmar a saída');
- const loteDisponivel=confLotesDisponiveis.find(x=>x.lote===lote);
- if(!loteDisponivel)return toast('O lote selecionado não está mais disponível. Leia o QR novamente para atualizar os saldos.');
- if(quantidade>loteDisponivel.saldo)return toast(`O lote ${lote} possui apenas ${F(loteDisponivel.saldo)} unidades disponíveis. Reduza a quantidade ou selecione outro lote.`);
+ const autorizarEntrada=$('confEntradaAuto')?.checked===true;
+ const loteSelecionado=String($('confLote').value||'');
+ const lote=String(loteSelecionado||(autorizarEntrada?$('confLoteAuto')?.value:'')||'').trim();
+ if(!lote)return toast('Selecione um lote existente ou autorize a entrada automática e informe o lote físico');
+ const loteDisponivel=confLotesDisponiveis.find(x=>x.lote===lote),saldoLote=loteDisponivel?.saldo||0;
+ if(!autorizarEntrada&&!loteDisponivel)return toast('O lote selecionado não está mais disponível. Leia o QR novamente ou autorize a entrada automática.');
+ if(quantidade>saldoLote&&!autorizarEntrada)return toast(`O lote ${lote} possui apenas ${F(saldoLote)} unidades disponíveis. Autorize a entrada automática para cobrir a diferença.`);
  const foto=$('confFoto').files?.[0];if(!foto)return toast('Tire ou anexe a foto do pallet dentro do caminhão');
+ const faltaAutomatica=Math.max(0,quantidade-saldoLote);
  const texto=quantidade===N(ci.quantidade)?`Confirma ${F(quantidade)} unidades carregadas?`:`Atenção: programado ${F(ci.quantidade)}, conferido ${F(quantidade)}. A diferença NÃO será descontada. Confirmar?`;
- if(!confirm(`${texto}\n\nLote de origem: ${lote}\\nO sistema descontará agora ${F(quantidade)} do ESTOQUE PP SOMENTE DESTE LOTE${ci.pedido_item_id?' e atualizará o SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
+ const detalheEntrada=autorizarEntrada&&faltaAutomatica>0?`\\nSerá registrada ENTRADA AUTOMÁTICA de ${F(faltaAutomatica)} unidades no PP, lote ${lote}, e a mesma quantidade será baixada nesta operação.`:'';
+ if(!confirm(`${texto}\\n\\nLote de origem: ${lote}.${detalheEntrada}\\nBaixa total: ${F(quantidade)} unidades do PP${ci.pedido_item_id?' e atualização do SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
  confEnviando=true;const btn=$('confBtnConfirmar');if(btn)btn.disabled=true;
  let nomeFoto='',baixaConcluida=false;
  try{
@@ -2010,7 +2004,7 @@ async function confirmarPalletCarregado(){
   const pub=sb.storage.from('conferencia-cargas').getPublicUrl(nomeFoto).data.publicUrl;
   const {data,error}=await sb.rpc('confirmar_pallet_carregado_qr',{
     p_carga_item_id:ci.id,p_quantidade_conferida:quantidade,p_lote:lote,p_foto_path:nomeFoto,
-    p_foto_url:pub,p_qr_texto:qrTexto,p_observacao:$('confObs').value.trim()||null,
+    p_foto_url:pub,p_qr_texto:qrTexto,p_observacao:autorizarEntrada?'AUTO_ENTRADA_PP|'+($('confObs').value.trim()||''):$('confObs').value.trim()||null,
     p_conferente_nome:perfilAtual?.nome||''
   });
   if(error)throw error;
