@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.11</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.12</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -2706,9 +2706,16 @@ function reconstruirIndiceWms(){
  const add=(x,tipo,ref)=>{
   const end=N(x.endereco_wms_id),q=N(x.quantidade);
   if(!end||q<=0)return;
-  const cad=ref?.cad||{},r={tipo,codigo:cad.codigo||`ID ${x.id}`,descricao:cad.descricao||'Sem descrição',familia:cad.familia||'',lote:x.lote||'',qtd:q,estoque_id:x.id};
+  const cad=ref?.cad||{},lote=String(x.lote||'');
+  const chave=tipo==='PP'?('PP|'+N(x.produto_id)+'|'+lote):(tipo+'|'+N(x.id));
   if(!indiceConteudoWms.has(end))indiceConteudoWms.set(end,[]);
-  indiceConteudoWms.get(end).push(r);
+  const lista=indiceConteudoWms.get(end);
+  let r=lista.find(z=>z._chave===chave);
+  if(!r){
+   r={tipo,codigo:cad.codigo||`ID ${x.id}`,descricao:cad.descricao||'Sem descrição',familia:cad.familia||'',lote,qtd:0,estoque_id:x.id,estoque_ids:[],_chave:chave};
+   lista.push(r);
+  }
+  r.qtd+=q;r.estoque_ids.push(x.id);
   indiceQtdWms.set(end,(indiceQtdWms.get(end)||0)+q);
  };
  pp.forEach(x=>add(x,'PP',{cad:pm.get(N(x.produto_id))}));
@@ -2814,7 +2821,7 @@ async function gerarLoteLocal(tipo){
 }
 function renderInventarioLocal(tipo){
  let k=tipo.toLowerCase(),e=$(`${k}PainelInv`);if(!e)return;
- let local=locais.find(x=>(x.codigo||'').toUpperCase()===tipo),pos=ends.filter(x=>local&&x.local_id===local.id);
+ let local=locais.find(x=>(x.codigo||'').toUpperCase()===tipo),pos=ends.filter(x=>local&&x.local_id===local.id&&x.ativo!==false);
  let rows=[];
  if(tipo==='MP'){
    rows=emp.filter(x=>local&&x.local_id===local.id).map(x=>{let m=mps.find(z=>N(z.id)===N(x.materia_prima_id)),p=ends.find(z=>N(z.id)===N(x.endereco_wms_id));return {codigo:m?.codigo||'',desc:m?.descricao||'',pos:p?.codigo||'',lote:x.lote||'',q:N(x.quantidade)}})
@@ -2848,7 +2855,7 @@ async function salvarPosicaoLocal(tipo){
 }
 function renderMapaLocal(tipo){
  const k=tipo.toLowerCase(),local=locais.find(x=>String(x.codigo||'').toUpperCase()===tipo),busca=($(`${k}WBusca`)?.value||'').trim().toLowerCase();
- let a=ends.filter(x=>local&&N(x.local_id)===N(local.id));
+ let a=ends.filter(x=>local&&N(x.local_id)===N(local.id)&&x.ativo!==false);
  if(busca)a=a.filter(x=>String(x.codigo||'').toLowerCase().includes(busca)||conteudoPosicao(x.id).some(c=>(c.codigo+' '+c.descricao).toLowerCase().includes(busca)));
  const el=$(`${k}WMapa`);if(!el)return;
  el.innerHTML=a.map(x=>{
@@ -2886,12 +2893,12 @@ function adicionarItemPA(){toast('Entrada PA pelo formulário antigo está desat
 function excluirItemPA(i){toast('Exclusão local desativada: o estoque oficial não é alterado pelo navegador.');}
 function renderWms(){
  const local=locais.find(x=>String(x.codigo||'').toUpperCase()==='PP'),busca=($('wBusca')?.value||'').trim().toLowerCase(),fam=$('wFamilia')?.value||'';
- let a=ends.filter(x=>local&&N(x.local_id)===N(local.id));
+ let a=ends.filter(x=>local&&N(x.local_id)===N(local.id)&&x.ativo!==false);
  if(busca||fam)a=a.filter(x=>{
   const cs=conteudoPosicao(x.id);
   return (!busca||String(x.codigo||'').toLowerCase().includes(busca)||cs.some(c=>(c.codigo+' '+c.descricao).toLowerCase().includes(busca)))&&(!fam||cs.some(c=>c.familia===fam));
  });
- setHTML('wBuscaResumo',`Posições encontradas: <b>${a.length}</b>`);
+ setHTML('wBuscaResumo',`Posições ativas encontradas: <b>${a.length}</b> · Corredores 11 a 15 possuem uma posição concentradora cada.`);
  setHTML('wMapa',a.map(x=>{
   const cs=conteudoPosicao(x.id),s=situacaoRealWms(x);
   const itens=cs.map(c=>`<div style="margin-top:7px;border-top:1px solid #ddd;padding-top:6px"><b>${E(c.codigo)}</b> · ${E(c.descricao)}<br><span class="muted">Lote ${E(c.lote)} · Qtd ${F(c.qtd)}</span></div>`).join('');
@@ -2931,7 +2938,7 @@ async function excluirVinc(id){
  toast('Vínculo excluído');await load()
 }
 async function entradaPP(){let c=prompt('Código do produto:');if(!c)return;let p=produtos.find(x=>x.codigo===c);if(!p)return toast('Produto não encontrado');let q=N(prompt('Quantidade:')),l=locais.find(x=>x.tipo==='PRODUTO_PRONTO'),lot=prompt('Lote:')||'';let z=await sb.from('estoque_produto_pronto').insert({produto_id:p.id,local_id:l?.id||null,quantidade:q,lote:lot});if(z.error)return toast(z.error.message);await sb.from('movimentacoes_estoque').insert({tipo_estoque:'PRODUTO_PRONTO',item_id:p.id,tipo_movimento:'ENTRADA',quantidade:q,local_destino_id:l?.id||null,lote:lot});load()}function entradaMP(){movAbrirEntradaMp();}
-function renderWmsNovo(){if(!$('wMapa'))return;let lm=new Map(locais.map(x=>[x.id,x.nome]));$('wMapa').innerHTML=ends.map(x=>`<div class="slot ${E(x.status)}"><b>${E(x.codigo)}</b><br><span class="muted">${E(lm.get(x.local_id))}<br>${E(x.setor||'Detalhamento pendente')}</span></div>`).join('')}
+function renderWmsNovo(){if(!$('wMapa'))return;let lm=new Map(locais.map(x=>[x.id,x.nome]));$('wMapa').innerHTML=ends.filter(x=>x.ativo!==false).map(x=>`<div class="slot ${E(x.status)}"><b>${E(x.codigo)}</b><br><span class="muted">${E(lm.get(x.local_id))}<br>${E(x.setor||'Detalhamento pendente')}</span></div>`).join('')}
 function gerarCodigoPP(){let c=N($('wCol')?.value),a=N($('wAnd')?.value),p=N($('wPos')?.value);if($('wCod'))$('wCod').value=(c&&a&&p)?`PP-${c}-${a}-${p}`:''}
 async function obterLocalPP(){
  let l=locais.find(x=>(x.codigo||'').toUpperCase()==='PP'||(x.tipo||'').toUpperCase()==='PP');
@@ -2944,6 +2951,8 @@ async function salvarPosicao(){
  let local=await obterLocalPP();if(!local)return;
  let col=N($('wCol').value),andar=N($('wAnd').value),pos=N($('wPos').value),codigo=$('wCod').value.trim();
  if(!col||!andar||!pos||!codigo)return toast('Informe Coluna, Andar e Posição');
+ if([11,12,13,14,15].includes(col)&&!(andar===1&&pos===1))return toast('O corredor '+col+' possui somente a posição PP-'+col+'-1-1.');
+ if(ends.some(x=>String(x.codigo||'').toUpperCase()===codigo.toUpperCase()))return toast('Esta posição já está cadastrada.');
  let o={local_id:local.id,codigo,rua:null,modulo:String(col),nivel:String(andar),posicao:String(pos),capacidade:N($('wCap').value),status:'LIVRE',ativo:true};
  let {error}=await sb.from('enderecos_wms').insert(o);if(error)return toast(error.message);
  toast('Posição '+codigo+' criada');await load();$('wCol').value='';$('wAnd').value='';$('wPos').value='';$('wCod').value=''
@@ -2955,12 +2964,15 @@ function montarLotePP(){
 }
 function previewLotePP(){
  let a=montarLotePP();if(!a.length)return setHTML('gPreview','Confira os intervalos informados.');
+ let bloqueadas=a.filter(x=>[11,12,13,14,15].includes(x.col)&&!(x.andar===1&&x.pos===1));
+ if(bloqueadas.length)return setHTML('gPreview','Os corredores 11 a 15 aceitam somente uma posição: PP-11-1-1, PP-12-1-1, PP-13-1-1, PP-14-1-1 e PP-15-1-1.');
  let amostra=a.slice(0,12).map(x=>x.codigo).join(', ')+(a.length>12?' ...':'');
  setHTML('gPreview',`Serão criadas <b>${a.length}</b> posições.<br>${E(amostra)}`);
 }
 async function gerarPosicoes(){
  let local=await obterLocalPP();if(!local)return;
  let a=montarLotePP();if(!a.length)return toast('Confira Coluna, Andar e Posição');
+ if(a.some(x=>[11,12,13,14,15].includes(x.col)&&!(x.andar===1&&x.pos===1)))return toast('Os corredores 11 a 15 possuem somente uma posição cada: PP-11-1-1 até PP-15-1-1.');
  if(a.length>1000)return toast('Limite de 1.000 posições por operação');
  let existentes=new Set(ends.map(x=>(x.codigo||'').toUpperCase()));
  let novos=a.filter(x=>!existentes.has(x.codigo.toUpperCase()));
@@ -4577,12 +4589,17 @@ function ppqrPodeAlterar(){return podeAlterar('MOVIMENTACOES')||podeAlterar('WMS
 function ppqrLimparConsultaSeAlterar(){const codigo=ppqrExtrairCodigo($('ppqrCodigo')?.value);if(codigo!==PPQR.codigo){PPQR.consulta=null;PPQR.codigo='';PPQR.operacaoUuid=null;ppqrExibir()}}
 function ppqrPosicoesLivres(){
  const ids=new Set(locais.filter(x=>String(x.codigo||'').toUpperCase()==='PP'||['PP','PRODUTO_PRONTO'].includes(String(x.tipo||'').toUpperCase())).map(x=>Number(x.id)));
+ const concentradoras=new Set(['PP-11-1-1','PP-12-1-1','PP-13-1-1','PP-14-1-1','PP-15-1-1']);
  const ocupados=new Set(pp.filter(x=>N(x.quantidade)>0||N(x.reservado)>0||N(x.bloqueado)>0).map(x=>Number(x.endereco_wms_id)));
- return ends.filter(x=>x.ativo!==false&&ids.has(Number(x.local_id))&&String(x.status||'').toUpperCase()==='LIVRE'&&!ocupados.has(Number(x.id)))
-   .sort((a,b)=>movPosCollator.compare(String(a.codigo||''),String(b.codigo||'')));
+ return ends.filter(x=>x.ativo!==false&&ids.has(Number(x.local_id))&&(
+   concentradoras.has(String(x.codigo||'').toUpperCase())||
+   (String(x.status||'').toUpperCase()==='LIVRE'&&!ocupados.has(Number(x.id)))
+  ))
+  .map(x=>({...x,concentradora:concentradoras.has(String(x.codigo||'').toUpperCase())}))
+  .sort((a,b)=>movPosCollator.compare(String(a.codigo||''),String(b.codigo||'')));
 }
 function ppqrAtualizarPosicoes(){
- PPQR.lista=ppqrPosicoesLivres();const dica=$('ppqrPosDica');if(dica)dica.textContent=`${PPQR.lista.length} posição(ões) PP livre(s). Digite parte do endereço e selecione.`;
+ PPQR.lista=ppqrPosicoesLivres();const dica=$('ppqrPosDica');if(dica)dica.textContent=`${PPQR.lista.length} posição(ões) PP disponíveis, incluindo as posições concentradoras dos corredores 11 a 15. Digite parte do endereço e selecione.`;
  const campo=$('ppqrPosId'),busca=$('ppqrPosBusca');if(campo&&busca){const escolhido=PPQR.lista.find(x=>String(x.id)===campo.value);if(!escolhido){campo.value='';busca.value='';busca.classList.remove('movpos-picked')}}
  ppqrFecharPos();ppqrAtualizarBotao();
 }
@@ -4591,9 +4608,9 @@ function ppqrFecharPos(){const lista=$('ppqrPosResultados');if(lista)lista.class
 function ppqrRenderPos(){const lista=$('ppqrPosResultados'),campo=$('ppqrPosBusca');if(!lista||!campo)return;
  const termo=campo.value.trim().toLowerCase();const todos=termo?PPQR.lista.filter(x=>String(x.codigo||'').toLowerCase().includes(termo)):PPQR.lista;
  const mostra=todos.slice(0,12);if(PPQR.indice>=mostra.length)PPQR.indice=-1;
- lista.innerHTML=mostra.map((p,i)=>`<button type="button" class="movpos-option ${i===PPQR.indice?'active':''}" role="option" onmousedown="event.preventDefault()" onclick="ppqrEscolherPos(${Number(p.id)})"><b>${E(p.codigo)}</b><small> LIVRE</small></button>`).join('')
+ lista.innerHTML=mostra.map((p,i)=>`<button type="button" class="movpos-option ${i===PPQR.indice?'active':''}" role="option" onmousedown="event.preventDefault()" onclick="ppqrEscolherPos(${Number(p.id)})"><b>${E(p.codigo)}</b><small> ${p.concentradora?'POSIÇÃO CONCENTRADORA':'LIVRE'}</small></button>`).join('')
  +(todos.length>12?`<div class="movpos-empty">Mostrando 12 de ${todos.length}. Continue digitando.</div>`:'')
- +(!todos.length?'<div class="movpos-empty">Nenhuma posição PP livre encontrada.</div>':'');
+ +(!todos.length?'<div class="movpos-empty">Nenhuma posição PP disponível encontrada.</div>':'');
  lista.classList.add('open');campo.setAttribute('aria-expanded','true');
 }
 function ppqrAbrirPos(){PPQR.indice=-1;ppqrRenderPos()}
