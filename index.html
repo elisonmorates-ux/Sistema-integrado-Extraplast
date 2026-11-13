@@ -1923,7 +1923,8 @@ async function pararLeitorCarga(){
  confLendo=false;
  if($('confReader'))$('confReader').style.display='none';
 }
-// V1.38.14 — entrada automática e baixa imediata no PP durante conferência de carga.\n// V1.38.13 — seleção de lote com saldo real disponível no PP.
+// V1.38.14 — entrada automática e baixa imediata no PP durante conferência de carga.
+// V1.38.13 — seleção de lote com saldo real disponível no PP.
 async function confCarregarLotesConferencia(produtoId){
  const sel=$('confLote'),info=$('confLoteInfo');
  if(!sel)throw new Error('Campo de lote não encontrado');
