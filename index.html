@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.12</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EXTRAPLAST · Sistema Integrado V1.38.13</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script><style>
 *{box-sizing:border-box}body{margin:0;font:14px Arial;background:#f3f6f9;color:#172433}header{background:#123b63;color:white;padding:16px 22px;display:flex;justify-content:space-between}.app{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 55px)}nav{background:#102f4f;padding:12px}.nav{display:block;width:100%;border:0;background:transparent;color:#dbeafe;padding:12px;text-align:left;border-radius:7px;font-weight:bold;cursor:pointer}.nav.on,.nav:hover{background:#1f5f99}main{padding:20px;overflow:auto}.page{display:none}.page.on{display:block}.box,.card{background:white;border:1px solid #dce3ea;border-radius:10px;padding:15px;margin-bottom:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{font-size:26px;font-weight:bold}.muted{font-size:12px;color:#64748b}.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}input,select,textarea{width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:6px}.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}button{border:0;border-radius:6px;padding:9px 12px;font-weight:bold;cursor:pointer}.pri{background:#1f5f99;color:white}.sec{background:#e2e8f0}.del{background:#fee2e2;color:#991b1b}.tabs{display:flex;gap:7px;margin-bottom:10px}.tab{background:#e2e8f0}.tab.on{background:#1f5f99;color:white}.pane{display:none}.pane.on{display:block}.tw{overflow:auto;border:1px solid #dce3ea;border-radius:8px}table{width:100%;border-collapse:collapse;background:white}th,td{padding:9px;border-bottom:1px solid #e5e7eb;text-align:left;white-space:nowrap}th{background:#edf2f7}.badge{display:inline-block;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:bold}.g{background:#dcfce7;color:#166534}.a{background:#ffedd5;color:#9a3412}.r{background:#fee2e2;color:#991b1b}.wms{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.slot{background:white;border:2px solid #cbd5e1;border-radius:8px;padding:11px}.slot.LIVRE{border-color:#86efac}.slot.OCUPADO{border-color:#fca5a5}.slot.RESERVADO{border-color:#fdba74}.toast{display:none;position:fixed;right:18px;bottom:18px;background:#111827;color:white;padding:12px;border-radius:7px}@media(max-width:900px){.app{grid-template-columns:1fr}nav{display:flex;overflow:auto}.nav{min-width:max-content}.cards,.form{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards,.form{grid-template-columns:1fr}}
@@ -677,13 +677,15 @@ tbody tr:hover{background:#fffaf6}
   <h3 id="confPalletTitulo">Pallet</h3>
   <div id="confPalletDados"></div>
   <div class="form" style="margin-top:12px">
-   <div><label>Quantidade realmente carregada *</label><input id="confQtd" type="number" min="0.01" step="0.01" inputmode="decimal"><span class="muted">Confira a quantidade do pallet. A baixa será feita somente após confirmar.</span></div><div><label>Foto do pallet dentro do caminhão *</label><input id="confFoto" type="file" accept="image/*" capture="environment"></div>
+   <div><label>Lote de origem *</label><select id="confLote" onchange="confAtualizarInfoLote()"><option value="">Selecione o lote...</option></select><span id="confLoteInfo" class="muted">Selecione o lote físico que está sendo carregado.</span></div>
+   <div><label>Quantidade realmente carregada *</label><input id="confQtd" type="number" min="0.01" step="0.01" inputmode="decimal"><span class="muted">Confira a quantidade do pallet. A baixa será feita somente após confirmar.</span></div>
+   <div><label>Foto do pallet dentro do caminhão *</label><input id="confFoto" type="file" accept="image/*" capture="environment"></div>
    <div><label>Observação</label><input id="confObs" placeholder="Opcional"></div>
   </div>
   <div class="actions"><button class="pri" id="confBtnConfirmar" onclick="confirmarPalletCarregado()">✓ Confirmar quantidade e baixar PP/pedido</button></div>
  </div>
  <p class="muted">O Administrador pode usar <b>Estornar</b> para cancelar uma leitura e devolver o saldo ao PP e ao pedido, desde que o pallet esteja fisicamente de volta no estoque. O sistema guarda a foto e o histórico para auditoria. Conferências já finalizadas/assinadas não podem ser estornadas diretamente.</p>
- <div class="tw"><table><thead><tr><th>Pallet</th><th>Produto</th><th>Descrição</th><th>Qtd. conferida</th><th>Status</th><th>Horário</th><th>Evidência</th><th>Ações</th></tr></thead><tbody id="confLista"></tbody></table></div>
+ <div class="tw"><table><thead><tr><th>Pallet</th><th>Produto</th><th>Descrição</th><th>Lote</th><th>Qtd. conferida</th><th>Status</th><th>Horário</th><th>Evidência</th><th>Ações</th></tr></thead><tbody id="confLista"></tbody></table></div>
  <div id="confFinalizacao" class="box" style="margin-top:16px;background:#f8fafc">
   <h3>Finalização da Conferência</h3>
   <div id="confFinalizadoInfo" style="display:none"></div>
@@ -1807,7 +1809,7 @@ async function gerarEtiquetasPdfCarga(){
 function gerarEtiquetasWordCarga(){return gerarEtiquetasPdfCarga()}
 function gerarEtiquetasCarga(){return gerarEtiquetasPdfCarga()}
 
-let confCargaAtual=null,confItemAtual=null,confRegistros=[],confQr=null,confLendo=false,confFinalizacao=null,confAssinando=false,confAssinaturaVazia=true;
+let confCargaAtual=null,confItemAtual=null,confRegistros=[],confLotesDisponiveis=[],confSaldoSemLote=0,confQr=null,confLendo=false,confFinalizacao=null,confAssinando=false,confAssinaturaVazia=true;
 
 async function abrirResumoConferenciaCarga(){
  const c=cargaSelecionada();
@@ -1842,7 +1844,7 @@ function renderConferenciaCarga(){
    const ev=r?.foto_url?`<a href="${E(r.foto_url)}" target="_blank" rel="noopener">Ver foto</a>`:'—';
    const estornavel=r?.baixa_qr_em && perfilAtual?.perfil==='ADMINISTRADOR' && !confFinalizacao && !['EM TRANSITO','EM TRÂNSITO','ENTREGUE','CANCELADA'].includes(String(confCargaAtual?.status||'').toUpperCase());
    const acao=estornavel?`<button class="del" type="button" onclick="estornarConferenciaPallet(${N(ci.id)})" title="Estornar pallet ${np} e devolver os saldos ao PP e ao pedido">Estornar</button>`:'—';
-   return `<tr><td><b>${np}</b></td><td>${E(p.codigo||'')}</td><td>${E(p.descricao||'')}</td><td>${r?(r.baixa_qr_em?F(r.quantidade_conferida):'Anterior (conferir)'):'—'}</td><td>${r?(r.baixa_qr_em?'<span class="badge" style="background:#d1fadf">BAIXADO NO QR</span>':'<span class="badge a">CONFERÊNCIA ANTIGA</span>'):'<span class="badge">PENDENTE</span>'}</td><td>${E(hora)}</td><td>${ev}</td><td>${acao}</td></tr>`;
+   return `<tr><td><b>${np}</b></td><td>${E(p.codigo||'')}</td><td>${E(p.descricao||'')}</td><td>${E(r?.lote||'—')}</td><td>${r?(r.baixa_qr_em?F(r.quantidade_conferida):'Anterior (conferir)'):'—'}</td><td>${r?(r.baixa_qr_em?'<span class="badge" style="background:#d1fadf">BAIXADO NO QR</span>':'<span class="badge a">CONFERÊNCIA ANTIGA</span>'):'<span class="badge">PENDENTE</span>'}</td><td>${E(hora)}</td><td>${ev}</td><td>${acao}</td></tr>`;
  }).join('');
  const completo=feitos.size===itens.length&&itens.length>0&&confRegistros.every(x=>!!x.baixa_qr_em);
  const form=$('confFinalizarForm'),info=$('confFinalizadoInfo');
@@ -1916,6 +1918,48 @@ async function pararLeitorCarga(){
  confLendo=false;
  if($('confReader'))$('confReader').style.display='none';
 }
+// V1.38.13 — seleção de lote com saldo real disponível no PP.
+async function confCarregarLotesConferencia(produtoId){
+ const sel=$('confLote'),info=$('confLoteInfo');
+ if(!sel)throw new Error('Campo de lote não encontrado');
+ sel.disabled=true;sel.innerHTML='<option value="">Consultando lotes...</option>';
+ if(info)info.textContent='Consultando saldo disponível do produto...';
+ const {data,error}=await sb.from('estoque_produto_pronto')
+  .select('lote,quantidade,reservado,bloqueado,endereco_wms_id')
+  .eq('produto_id',produtoId).gt('quantidade',0);
+ if(error)throw error;
+ const mapa=new Map();let semLote=0;
+ for(const r of data||[]){
+  const saldo=Math.max(0,N(r.quantidade)-N(r.reservado)-N(r.bloqueado));
+  if(saldo<=0)continue;
+  const lote=String(r.lote??'');
+  if(!lote.trim()){semLote+=saldo;continue;}
+  let item=mapa.get(lote);
+  if(!item){item={lote,saldo:0,posicoes:new Set()};mapa.set(lote,item);}
+  item.saldo+=saldo;
+  const endereco=ends.find(e=>N(e.id)===N(r.endereco_wms_id));
+  if(endereco?.codigo)item.posicoes.add(endereco.codigo);
+ }
+ confLotesDisponiveis=[...mapa.values()].sort((a,b)=>a.lote.localeCompare(b.lote,'pt-BR',{numeric:true}));
+ confSaldoSemLote=semLote;
+ sel.innerHTML='<option value="">Selecione o lote de origem...</option>'+confLotesDisponiveis.map(x=>
+  `<option value="${E(x.lote)}">${E(x.lote)} · disponível: ${F(x.saldo)}${x.posicoes.size?' · '+E([...x.posicoes].join(', ')):''}</option>`
+ ).join('');
+ sel.disabled=!confLotesDisponiveis.length;
+ const btn=$('confBtnConfirmar');if(btn)btn.disabled=!confLotesDisponiveis.length;
+ confAtualizarInfoLote();
+}
+function confAtualizarInfoLote(){
+ const lote=$('confLote')?.value||'';
+ const item=confLotesDisponiveis.find(x=>x.lote===lote);
+ const info=$('confLoteInfo');
+ const aviso=confSaldoSemLote>0?` ${F(confSaldoSemLote)} unidades sem lote cadastrado não serão usadas nesta conferência.`:'';
+ if(info)info.textContent=item
+  ?`Saldo disponível no lote ${item.lote}: ${F(item.saldo)} unidades.${item.posicoes.size?' Posições: '+[...item.posicoes].join(', ')+'.':''}${aviso}`
+  :`Selecione o lote físico que está sendo carregado.${aviso}`;
+ const btn=$('confBtnConfirmar');if(btn)btn.disabled=!confLotesDisponiveis.length;
+}
+
 async function selecionarQrCarga(texto){
  const m=String(texto||'').match(/CARGA:(\d+)\|ROMANEIO:[^|]*\|PALLET:(\d+)\|CARGA_ITEM:(\d+)/);
  if(!m)return toast('QR Code não pertence ao padrão EXTRAPLAST');
@@ -1925,13 +1969,17 @@ async function selecionarQrCarga(texto){
  const ci=itensCargaSelecionada().find(x=>N(x.id)===itemId);
  if(!ci)return toast('Pallet não localizado nesta carga');
  confItemAtual={ci,pallet,qrTexto:String(texto||'')};
+ await pararLeitorCarga();
+ confLotesDisponiveis=[];confSaldoSemLote=0;
  const d=dadosPalletCarga(ci),p=d.produto||{};
  $('confPalletTitulo').textContent=`PALLET ${pallet}`;
- $('confPalletDados').innerHTML=`<b>${E(p.codigo||'')}</b> · ${E(p.descricao||'')}<br>Quantidade: <b>${F(ci.quantidade)}</b>`;
+ $('confPalletDados').innerHTML=`<b>${E(p.codigo||'')}</b> · ${E(p.descricao||'')}<br>Quantidade programada: <b>${F(ci.quantidade)}</b>`;
  $('confFoto').value='';$('confObs').value='';$('confQtd').value=ci.quantidade||'';
+ $('confLote').innerHTML='<option value="">Consultando lotes...</option>';$('confLote').disabled=true;
  $('confPalletAtual').style.display='block';
+ try{await confCarregarLotesConferencia(ci.item_id);}
+ catch(e){confItemAtual=null;$('confPalletAtual').style.display='none';return toast('Não foi possível consultar os lotes deste produto: '+(e?.message||e));}
  $('confPalletAtual').scrollIntoView({behavior:'smooth',block:'center'});
- await pararLeitorCarga();
 }
 let confEnviando=false;
 async function confirmarPalletCarregado(){
@@ -1941,9 +1989,14 @@ async function confirmarPalletCarregado(){
  if(confRegistros.some(x=>N(x.carga_item_id)===N(ci.id)))return toast('Este pallet já foi conferido');
  const quantidade=N($('confQtd').value);
  if(!Number.isFinite(quantidade)||quantidade<=0||quantidade>N(ci.quantidade))return toast(`Confira a quantidade: deve ser maior que zero e no máximo ${F(ci.quantidade)}`);
+ const lote=String($('confLote').value||'');
+ if(!lote.trim())return toast('Selecione o lote de origem antes de confirmar a saída');
+ const loteDisponivel=confLotesDisponiveis.find(x=>x.lote===lote);
+ if(!loteDisponivel)return toast('O lote selecionado não está mais disponível. Leia o QR novamente para atualizar os saldos.');
+ if(quantidade>loteDisponivel.saldo)return toast(`O lote ${lote} possui apenas ${F(loteDisponivel.saldo)} unidades disponíveis. Reduza a quantidade ou selecione outro lote.`);
  const foto=$('confFoto').files?.[0];if(!foto)return toast('Tire ou anexe a foto do pallet dentro do caminhão');
  const texto=quantidade===N(ci.quantidade)?`Confirma ${F(quantidade)} unidades carregadas?`:`Atenção: programado ${F(ci.quantidade)}, conferido ${F(quantidade)}. A diferença NÃO será descontada. Confirmar?`;
- if(!confirm(`${texto}\n\nO sistema descontará agora ${F(quantidade)} do ESTOQUE PP${ci.pedido_item_id?' e do SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
+ if(!confirm(`${texto}\n\nLote de origem: ${lote}\\nO sistema descontará agora ${F(quantidade)} do ESTOQUE PP SOMENTE DESTE LOTE${ci.pedido_item_id?' e atualizará o SALDO DO PEDIDO':''}. Esta operação não pode ser repetida.`))return;
  confEnviando=true;const btn=$('confBtnConfirmar');if(btn)btn.disabled=true;
  let nomeFoto='',baixaConcluida=false;
  try{
@@ -1954,13 +2007,13 @@ async function confirmarPalletCarregado(){
   if(up.error)throw up.error;
   const pub=sb.storage.from('conferencia-cargas').getPublicUrl(nomeFoto).data.publicUrl;
   const {data,error}=await sb.rpc('confirmar_pallet_carregado_qr',{
-    p_carga_item_id:ci.id,p_quantidade_conferida:quantidade,p_foto_path:nomeFoto,
+    p_carga_item_id:ci.id,p_quantidade_conferida:quantidade,p_lote:lote,p_foto_path:nomeFoto,
     p_foto_url:pub,p_qr_texto:qrTexto,p_observacao:$('confObs').value.trim()||null,
     p_conferente_nome:perfilAtual?.nome||''
   });
   if(error)throw error;
   baixaConcluida=true;
-  toast(`Pallet ${pallet}: ${F(data?.quantidade_baixada||quantidade)} baixadas do PP e pedido atualizado.`);
+  toast(`Pallet ${pallet}: ${F(data?.quantidade_baixada||quantidade)} baixadas do lote ${data?.lote||lote}.`);
   confItemAtual=null;$('confPalletAtual').style.display='none';
   await load();confCargaAtual=cargas.find(x=>N(x.id)===N(confCargaAtual?.id))||confCargaAtual;
   await carregarConferenciaCarga();
@@ -5302,8 +5355,8 @@ async function relMontar(d){
  }
  if(d.id==='conf_carga'){
   const registros=await relLerTabela('carga_conferencias');
-  rows=registros.filter(x=>!x.estornado_em).map(x=>{const ci=cim.get(Number(x.carga_item_id))||{},c=cm.get(Number(x.carga_id))||{},p=pm.get(Number(ci.item_id))||{},confirmado=!!(x.baixa_qr_em||cargaBaixasQR.some(b=>Number(b.carga_item_id)===Number(x.carga_item_id)));const data=x.baixa_qr_em||x.criado_em||'';return {Romaneio:c.romaneio||x.carga_id,Pallet:ci.numero_pallet||ci.id||'',Código:p.codigo||ci.item_id||'',Produto:p.descricao||'',Conferido:confirmado?relNum(x.quantidade_conferida):null,Situação:confirmado?'Baixado no QR':'Conferido sem baixa',Data:relFmtData(data),__data:relData(data),__status:confirmado?'Baixado no QR':'Conferido sem baixa'}});
-  cols=[['Romaneio','Romaneio',1],['Pallet','Pallet',.8],['Código','Código',.9],['Produto','Produto',3],['Conferido','Conferido',1,'right'],['Situação','Situação',1.5],['Data','Data',1.1]];nota='Estornos não entram nos totais; registros sem baixa QR são identificados separadamente. Conferido refere-se à quantidade física confirmada.';
+  rows=registros.filter(x=>!x.estornado_em).map(x=>{const ci=cim.get(Number(x.carga_item_id))||{},c=cm.get(Number(x.carga_id))||{},p=pm.get(Number(ci.item_id))||{},confirmado=!!(x.baixa_qr_em||cargaBaixasQR.some(b=>Number(b.carga_item_id)===Number(x.carga_item_id)));const data=x.baixa_qr_em||x.criado_em||'';return {Romaneio:c.romaneio||x.carga_id,Pallet:ci.numero_pallet||ci.id||'',Código:p.codigo||ci.item_id||'',Produto:p.descricao||'',Lote:x.lote||'—',Conferido:confirmado?relNum(x.quantidade_conferida):null,Situação:confirmado?'Baixado no QR':'Conferido sem baixa',Data:relFmtData(data),__data:relData(data),__status:confirmado?'Baixado no QR':'Conferido sem baixa'}});
+  cols=[['Romaneio','Romaneio',1],['Pallet','Pallet',.8],['Código','Código',.9],['Produto','Produto',3],['Lote','Lote',1],['Conferido','Conferido',1,'right'],['Situação','Situação',1.5],['Data','Data',1.1]];nota='Estornos não entram nos totais; registros sem baixa QR são identificados separadamente. Conferido refere-se à quantidade física confirmada.';
  }
  if(d.id==='ops'){
   const [ordens,pallets]=await Promise.all([relLerTabela('ordens_producao'),relLerTabela('op_pallets_pp')]);const pal=new Map();for(const x of pallets){const id=Number(x.op_id);if(!pal.has(id))pal.set(id,{q:0,n:0});pal.get(id).q+=relNum(x.quantidade);pal.get(id).n++;}
