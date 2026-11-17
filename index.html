@@ -2912,7 +2912,7 @@ function paInvAtualizarItens(){
  const sel=$('paInvItem'),end=N($('paInvEndereco')?.value),inv=paInvSessaoAtual(),local=locais.find(x=>String(x.codigo||'').toUpperCase()==='PA');if(!sel)return;
  const jaUsados=new Set(contagens.filter(x=>inv&&N(x.inventario_id)===N(inv.id)&&x.tipo_estoque==='PATIO'&&N(x.endereco_wms_id)!==end).map(x=>N(x.item_id)));
  const rows=(epa||[]).filter(x=>local&&N(x.local_id)===N(local.id)&&(x.endereco_wms_id==null||N(x.endereco_wms_id)===end)&&(N(x.quantidade)>0||N(x.reservado)>0||N(x.bloqueado)>0)&&!jaUsados.has(N(x.id))).sort((a,b)=>movPosCollator.compare(String(a.codigo_origem||''),String(b.codigo_origem||''))||N(a.id)-N(b.id));
- sel.innerHTML='<option value="">Selecione...</option>'+rows.map(x=>{const d=patioDadosOrigem(x);return '<option value="'+N(x.id)+'">'+E(d.codigo||'SEM CÓDIGO')+' · '+E(d.descricao||'')+' · Lote '+E(x.lote||'-')+' · Saldo '+F(x.quantidade)+'</option>'}).join('');
+ sel.innerHTML='<option value="">Selecione...</option>'+rows.map(x=>{const d=patioDadosOrigem(x);return '<option value="'+N(x.id)+'">Reg. #'+N(x.id)+' · '+E(d.codigo||'SEM CÓDIGO')+' · '+E(d.descricao||'')+' · Lote '+E(x.lote||'-')+' · Saldo '+F(x.quantidade)+'</option>'}).join('');
  if(!end)sel.innerHTML='<option value="">Selecione uma posição primeiro...</option>';
  if($('paInvLote'))$('paInvLote').value='';
 }
