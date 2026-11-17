@@ -2870,6 +2870,106 @@ async function gerarLoteLocal(tipo){
  let {error}=await sb.from('enderecos_wms').insert(rows);if(error)return toast(error.message);
  toast(`${rows.length} posição(ões) ${tipo} criada(s)`);await load();trocarLocalWms(tipo);let nav=document.querySelector(`.localWmsNav[data-local="${tipo}"] button`);abrirPainelLocal(tipo,'mapa',nav)
 }
+
+let paInvAtivoId=0;
+function paInvSessoes(){
+ const ids=new Set([...inventarioPosicoes.filter(x=>x.tipo_estoque==='PATIO').map(x=>N(x.inventario_id)),...contagens.filter(x=>x.tipo_estoque==='PATIO').map(x=>N(x.inventario_id))]);
+ return inventarios.filter(x=>ids.has(N(x.id))||/^INV-PA/i.test(String(x.codigo||''))).sort((a,b)=>String(b.iniciado_em||'').localeCompare(String(a.iniciado_em||'')));
+}
+function paInvSessaoAtual(){return inventarios.find(x=>N(x.id)===N(paInvAtivoId))||null}
+function renderInventarioPA(){
+ const el=$('paPainelInv');if(!el)return;
+ const sessoes=paInvSessoes();
+ if(!sessoes.some(x=>N(x.id)===N(paInvAtivoId))){const aberta=sessoes.find(x=>x.status==='ABERTO');paInvAtivoId=aberta?N(aberta.id):(sessoes[0]?N(sessoes[0].id):0)}
+ const inv=paInvSessaoAtual(),aberto=!!inv&&inv.status==='ABERTO';
+ const local=locais.find(x=>String(x.codigo||'').toUpperCase()==='PA');
+ const pos=ends.filter(x=>local&&N(x.local_id)===N(local.id)&&x.ativo!==false).sort((a,b)=>movPosCollator.compare(String(a.codigo||''),String(b.codigo||'')));
+ const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);
+ const opcoes=sessoes.map(x=>'<option value="'+N(x.id)+'" '+(N(x.id)===N(paInvAtivoId)?'selected':'')+'>'+E(x.codigo)+' · '+E(x.status)+' · '+E(x.descricao||'')+'</option>').join('');
+ el.innerHTML='<div class="box"><h3>Inventário WMS · Pátio (PA)</h3><p class="muted">Contagem física por posição PA. Os ajustes serão aplicados exclusivamente ao estoque do Pátio; PP e MP não serão alterados.</p>'+
+ '<div class="form"><div><label>Criar sessão · Código</label><input id="paInvNovoCodigo" value="INV-PA-'+stamp+'" placeholder="INV-PA-20261117"></div><div><label>Descrição</label><input id="paInvNovaDescricao" placeholder="Inventário físico do Pátio"></div><div><label>Sessão / histórico PA</label><select id="paInvSessao" onchange="paInvSelecionar(this.value)"><option value="">Selecione...</option>'+opcoes+'</select></div></div>'+
+ '<div class="actions"><button class="pri" onclick="paInvCriar()">Criar sessão PA</button>'+(inv?'<span class="badge '+(aberto?'a':'g')+'">'+E(inv.status)+'</span>':'')+'</div>'+
+ (inv?'<p class="muted">Sessão selecionada: <b>'+E(inv.codigo)+'</b> · Iniciada em '+E(inv.iniciado_em?new Date(inv.iniciado_em).toLocaleString('pt-BR'):'-')+'</p>':'<p class="muted">Crie uma sessão para iniciar a contagem do Pátio.</p>')+'</div>'+
+ '<div class="box"><h3>Registrar contagem física</h3><div class="form"><div><label>Posição PA</label><select id="paInvEndereco" onchange="paInvAtualizarItens()" '+(!aberto?'disabled':'')+'><option value="">Selecione uma posição...</option>'+pos.map(x=>'<option value="'+N(x.id)+'">'+E(x.codigo)+'</option>').join('')+'</select></div>'+
+ '<div><label>Item do estoque PA</label><select id="paInvItem" onchange="paInvPreencherLote()" '+(!aberto?'disabled':'')+'><option value="">Selecione uma posição primeiro...</option></select></div><div><label>Lote</label><input id="paInvLote" readonly></div>'+
+ '<div><label>Quantidade física contada</label><input id="paInvQtd" type="number" min="0" step=".01" '+(!aberto?'disabled':'')+'></div><div><label>Observação</label><input id="paInvObs" placeholder="Opcional" '+(!aberto?'disabled':'')+'></div></div>'+
+ '<div class="actions"><button class="pri" id="paInvRegistrar" onclick="paInvRegistrarContagem()" '+(!aberto?'disabled':'')+'>Adicionar à contagem</button><button class="sec" id="paInvVazia" onclick="paInvRegistrarVazia()" '+(!aberto?'disabled':'')+'>Registrar posição vazia</button></div>'+
+ '<p class="muted">Itens PA ainda sem endereço podem ser contados e atribuídos à posição conferida. Itens já endereçados em outra posição não aparecem nesta lista.</p></div>'+
+ '<div class="box"><h3>Conferência e aprovação por posição</h3><div class="tw"><table><thead><tr><th>Posição</th><th>Itens contados</th><th>Itens atuais não contados</th><th>Diferença potencial</th><th>Status</th><th>Ação</th></tr></thead><tbody id="paInvPosicoes"></tbody></table></div></div>'+
+ '<div class="box"><h3>Detalhes das contagens PA</h3><div class="actions"><button class="sec" onclick="renderInventarioPA()">Atualizar conferência</button><button class="sec" onclick="paInvExportar()" '+(!inv?'disabled':'')+'>Exportar relatório Excel</button><button class="pri" onclick="paInvFinalizar()" '+(!aberto?'disabled':'')+'>Finalizar inventário PA</button></div>'+
+ '<div class="tw"><table><thead><tr><th>Posição</th><th>Código</th><th>Descrição</th><th>Lote</th><th>Sistema</th><th>Contado</th><th>Diferença</th><th>Status</th></tr></thead><tbody id="paInvDetalhes"></tbody></table></div><p class="muted">A aprovação registra os ajustes no histórico de movimentações do Pátio. Itens não encontrados em uma posição aprovada têm o saldo zerado somente naquela posição.</p></div>';
+ paInvRenderTabelas();paInvAtualizarItens();
+}
+async function paInvCriar(){
+ const codigo=String($('paInvNovoCodigo')?.value||'').trim(),descricao=String($('paInvNovaDescricao')?.value||'').trim();
+ if(!codigo)return toast('Informe o código da sessão PA');
+ const {data,error}=await sb.from('inventarios_wms').insert({codigo,descricao,status:'ABERTO'}).select().single();
+ if(error)return toast(error.message);
+ paInvAtivoId=N(data.id);toast('Sessão de inventário PA criada');await load();renderInventarioPA();
+}
+function paInvSelecionar(id){paInvAtivoId=N(id);renderInventarioPA()}
+function paInvAtualizarItens(){
+ const sel=$('paInvItem'),end=N($('paInvEndereco')?.value),inv=paInvSessaoAtual(),local=locais.find(x=>String(x.codigo||'').toUpperCase()==='PA');if(!sel)return;
+ const jaUsados=new Set(contagens.filter(x=>inv&&N(x.inventario_id)===N(inv.id)&&x.tipo_estoque==='PATIO'&&N(x.endereco_wms_id)!==end).map(x=>N(x.item_id)));
+ const rows=(epa||[]).filter(x=>local&&N(x.local_id)===N(local.id)&&(x.endereco_wms_id==null||N(x.endereco_wms_id)===end)&&(N(x.quantidade)>0||N(x.reservado)>0||N(x.bloqueado)>0)&&!jaUsados.has(N(x.id))).sort((a,b)=>movPosCollator.compare(String(a.codigo_origem||''),String(b.codigo_origem||''))||N(a.id)-N(b.id));
+ sel.innerHTML='<option value="">Selecione...</option>'+rows.map(x=>{const d=patioDadosOrigem(x);return '<option value="'+N(x.id)+'">'+E(d.codigo||'SEM CÓDIGO')+' · '+E(d.descricao||'')+' · Lote '+E(x.lote||'-')+' · Saldo '+F(x.quantidade)+'</option>'}).join('');
+ if(!end)sel.innerHTML='<option value="">Selecione uma posição primeiro...</option>';
+ if($('paInvLote'))$('paInvLote').value='';
+}
+function paInvPreencherLote(){const x=(epa||[]).find(y=>N(y.id)===N($('paInvItem')?.value));if($('paInvLote'))$('paInvLote').value=x?.lote||''}
+async function paInvRegistrarContagem(){
+ const inv=paInvSessaoAtual(),end=N($('paInvEndereco')?.value),item=N($('paInvItem')?.value),row=(epa||[]).find(x=>N(x.id)===item),q=$('paInvQtd')?.value;
+ if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão PA aberta');
+ if(!end||!item||!row)return toast('Selecione a posição e o item do Pátio');
+ if(q===''||q==null||!Number.isFinite(Number(q))||Number(q)<0)return toast('Informe uma quantidade válida, inclusive zero');
+ const {error}=await sb.rpc('registrar_contagem_inventario_pa',{p_inventario_id:N(inv.id),p_endereco_wms_id:end,p_estoque_pa_id:item,p_lote:row.lote||null,p_quantidade:Number(q),p_observacao:$('paInvObs')?.value||null});
+ if(error)return toast(error.message);
+ toast('Contagem PA registrada');await load();renderInventarioPA();
+}
+async function paInvRegistrarVazia(){
+ const inv=paInvSessaoAtual(),end=N($('paInvEndereco')?.value);
+ if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão PA aberta');
+ if(!end)return toast('Selecione uma posição PA');
+ if(!confirm('Registrar esta posição como vazia? Ao aprovar, os saldos PA atualmente atribuídos a ela serão zerados.'))return;
+ const {error}=await sb.rpc('registrar_posicao_vazia_inventario_pa',{p_inventario_id:N(inv.id),p_endereco_wms_id:end});
+ if(error)return toast(error.message);
+ toast('Posição vazia registrada. Aprove a posição para confirmar o ajuste.');await load();renderInventarioPA();
+}
+function paInvResumoPosicao(p){
+ const invId=N(p.inventario_id),end=N(p.endereco_wms_id),linhas=contagens.filter(x=>N(x.inventario_id)===invId&&N(x.endereco_wms_id)===end&&x.tipo_estoque==='PATIO');
+ const contados=new Set(linhas.map(x=>N(x.item_id))),atuais=(epa||[]).filter(x=>N(x.endereco_wms_id)===end&&N(x.quantidade)>0),faltantes=atuais.filter(x=>!contados.has(N(x.id)));
+ return {linhas:linhas.length,grupos:contados.size,faltantes:faltantes.length,qtdFaltante:faltantes.reduce((a,x)=>a+N(x.quantidade),0)};
+}
+function paInvRenderTabelas(){
+ const inv=paInvSessaoAtual(),iid=inv?N(inv.id):0,em=new Map(ends.map(x=>[N(x.id),x.codigo]));
+ const posicoes=iid?inventarioPosicoes.filter(x=>N(x.inventario_id)===iid&&x.tipo_estoque==='PATIO'):[];
+ const posEl=$('paInvPosicoes');
+ if(posEl)posEl.innerHTML=posicoes.map(p=>{const r=paInvResumoPosicao(p),aprovado=p.status==='APROVADO';return '<tr><td><b>'+E(em.get(N(p.endereco_wms_id))||'Posição '+p.endereco_wms_id)+'</b></td><td>'+r.grupos+' grupo(s) · '+r.linhas+' lançamento(s)</td><td>'+r.faltantes+' item(ns)</td><td>'+F(r.qtdFaltante)+' un.</td><td><span class="badge '+(aprovado?'g':'a')+'">'+(aprovado?'Aprovada':'Em contagem')+'</span></td><td>'+(aprovado?'<span class="badge g">Concluída</span>':'<button class="pri" onclick="paInvAprovar('+N(p.endereco_wms_id)+')">Aprovar posição</button>')+'</td></tr>'}).join('')||'<tr><td colspan="6">Nenhuma posição registrada nesta sessão PA.</td></tr>';
+ const det=$('paInvDetalhes'),itens=iid?contagens.filter(x=>N(x.inventario_id)===iid&&x.tipo_estoque==='PATIO'):[];
+ if(det)det.innerHTML=itens.map(x=>{const row=(epa||[]).find(y=>N(y.id)===N(x.item_id)),d=row?patioDadosOrigem(row):{},pos=inventarioPosicoes.find(p=>N(p.inventario_id)===iid&&N(p.endereco_wms_id)===N(x.endereco_wms_id)&&p.tipo_estoque==='PATIO'),sis=x.quantidade_sistema==null?N(row?.quantidade):N(x.quantidade_sistema),contado=N(x.quantidade_contada),dif=x.diferenca==null?contado-sis:N(x.diferenca);return '<tr><td>'+E(em.get(N(x.endereco_wms_id))||'')+'</td><td>'+E(d.codigo||'')+'</td><td>'+E(d.descricao||'')+'</td><td>'+E(x.lote||'')+'</td><td>'+F(sis)+'</td><td>'+F(contado)+'</td><td><b>'+(dif>0?'+':'')+F(dif)+'</b></td><td><span class="badge '+(x.status==='APROVADO'||pos?.status==='APROVADO'?'g':'a')+'">'+E(x.status||'PENDENTE')+'</span></td></tr>'}).join('')||'<tr><td colspan="8">Nenhuma contagem registrada nesta sessão.</td></tr>';
+}
+async function paInvAprovar(end){
+ const inv=paInvSessaoAtual();if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão PA aberta');
+ const p=inventarioPosicoes.find(x=>N(x.inventario_id)===N(inv.id)&&N(x.endereco_wms_id)===N(end)&&x.tipo_estoque==='PATIO'),r=p?paInvResumoPosicao(p):{faltantes:0,qtdFaltante:0},nome=ends.find(x=>N(x.id)===N(end))?.codigo||('Posição '+end);
+ const msg='Aprovar a contagem física completa da posição '+nome+'?\\n\\n'+(r.faltantes?r.faltantes+' item(ns) atualmente atribuídos a esta posição não foram contados. '+F(r.qtdFaltante)+' unidade(s) serão zeradas.\\n\\n':'Não há saldo PA atual sem correspondência na contagem desta posição.\\n\\n')+'Os itens PA contados sem endereço serão atribuídos a esta posição. O ajuste ficará no histórico do PA e não afetará PP ou MP. Continuar?';
+ if(!confirm(msg))return;
+ const {data,error}=await sb.rpc('aprovar_posicao_inventario_pa',{p_inventario_id:N(inv.id),p_endereco_wms_id:N(end)});
+ if(error)return toast(error.message);
+ toast('Posição PA aprovada. '+N(data?.itens_zerados)+' item(ns) zerado(s).');await load();renderInventarioPA();
+}
+async function paInvFinalizar(){
+ const inv=paInvSessaoAtual();if(!inv||inv.status!=='ABERTO')return toast('Selecione uma sessão PA aberta');
+ if(!confirm('Finalizar o inventário PA '+inv.codigo+'? Todas as posições registradas precisam estar aprovadas.'))return;
+ const {error}=await sb.rpc('finalizar_inventario_wms',{p_inventario_id:N(inv.id)});if(error)return toast(error.message);
+ paInvAtivoId=0;toast('Inventário PA finalizado');await load();renderInventarioPA();
+}
+function paInvExportar(){
+ const inv=paInvSessaoAtual();if(!inv)return toast('Selecione uma sessão PA');if(typeof XLSX==='undefined')return toast('Biblioteca Excel indisponível');
+ const em=new Map(ends.map(x=>[N(x.id),x.codigo])),linhas=contagens.filter(x=>N(x.inventario_id)===N(inv.id)&&x.tipo_estoque==='PATIO').map(x=>{const row=(epa||[]).find(y=>N(y.id)===N(x.item_id)),d=row?patioDadosOrigem(row):{};return {Posição:em.get(N(x.endereco_wms_id))||'',Código:d.codigo||'',Descrição:d.descricao||'',Lote:x.lote||'','Saldo sistema':x.quantidade_sistema==null?N(row?.quantidade):N(x.quantidade_sistema),'Quantidade contada':N(x.quantidade_contada),'Diferença':x.diferenca==null?N(x.quantidade_contada)-N(row?.quantidade):N(x.diferenca),Status:x.status||'PENDENTE'}});
+ if(!linhas.length)return toast('Esta sessão ainda não possui contagens');
+ const ws=XLSX.utils.json_to_sheet(linhas),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Inventário PA');XLSX.writeFile(wb,'Inventario_PA_'+String(inv.codigo).replace(/[^a-z0-9_-]/gi,'_')+'.xlsx');
+}
+
 function renderInventarioLocal(tipo){
  if(tipo==='PA'){renderInventarioPA();return}
  let k=tipo.toLowerCase(),e=$(`${k}PainelInv`);if(!e)return;
