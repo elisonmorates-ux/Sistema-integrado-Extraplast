@@ -2604,25 +2604,41 @@ function exportarEstoqueExcel(){
  let busca=($('stockBusca')?.value||'').trim().toLowerCase(),fam=($('stockFam')?.value||''),linhas=[],titulo='';
  if(stockTipoAtual==='PP'){
    titulo='Estoque_PP';
-   linhas=produtos.map(p=>{let a=pp.filter(x=>N(x.produto_id)===N(p.id)),fis=a.reduce((z,x)=>z+N(x.quantidade),0),res=a.reduce((z,x)=>z+N(x.reservado),0),bloq=a.reduce((z,x)=>z+N(x.bloqueado),0);return {p,fis,res,bloq}})
-    .filter(x=>x.fis!==0||x.res!==0)
-    .filter(x=>!busca||(String(x.p.codigo||'')+' '+String(x.p.descricao||'')).toLowerCase().includes(busca))
+   const grupos=new Map();
+   pp.forEach(x=>{
+     const p=produtos.find(z=>N(z.id)===N(x.produto_id));if(!p)return;
+     const lote=String(x.lote||''),chave=String(p.id)+'|'+lote;
+     if(!grupos.has(chave))grupos.set(chave,{p,lote,fis:0,res:0,bloq:0});
+     const g=grupos.get(chave);g.fis+=N(x.quantidade);g.res+=N(x.reservado);g.bloq+=N(x.bloqueado);
+   });
+   linhas=[...grupos.values()]
+    .filter(x=>x.fis!==0||x.res!==0||x.bloq!==0)
+    .filter(x=>!busca||(String(x.p.codigo||'')+' '+String(x.p.descricao||'')+' '+x.lote).toLowerCase().includes(busca))
     .filter(x=>!fam||String(x.p.familia||'')===fam)
-    .map(x=>({'Código':x.p.codigo,'Descrição':x.p.descricao,'Família':x.p.familia||'','Físico':x.fis,'Reservado':x.res,'Bloqueado':x.bloq,'Disponível':x.fis-x.res-x.bloq}));
+    .map(x=>({'Código':x.p.codigo,'Descrição':x.p.descricao,'Família':x.p.familia||'','Lote':x.lote||'Sem lote informado','Físico':x.fis,'Reservado':x.res,'Bloqueado':x.bloq,'Disponível':x.fis-x.res-x.bloq}))
+    .sort((a,b)=>String(a['Código']).localeCompare(String(b['Código']),'pt-BR',{numeric:true})||String(a.Lote).localeCompare(String(b.Lote),'pt-BR'));
  }else if(stockTipoAtual==='PA'){
    titulo='Estoque_Patio';
-   linhas=(epa||[]).map(x=>{let p=patioDadosOrigem(x),pos=ends.find(e=>N(e.id)===N(x.endereco_wms_id));return {'Linha Excel':x.origem_linha||'','Código origem':p.codigo,'Descrição origem':p.descricao,'Família origem':p.familia,'Categoria':p.tipo,'Quantidade':N(x.quantidade),'Posição':pos?.codigo||'','Vinculado ao cadastro':x.produto_id?'SIM':'NÃO','Fonte':x.origem_arquivo||''}})
-    .filter(x=>!busca||(String(x['Código origem'])+' '+x['Descrição origem']+' '+x['Família origem']).toLowerCase().includes(busca));
+   linhas=(epa||[]).map(x=>{let p=patioDadosOrigem(x),pos=ends.find(e=>N(e.id)===N(x.endereco_wms_id));return {'Linha Excel':x.origem_linha||'','Código origem':p.codigo||'','Descrição origem':p.descricao||'','Família origem':p.familia||'','Categoria':p.tipo||'','Lote':x.lote||'','Quantidade':N(x.quantidade),'Posição':pos?.codigo||'','Vinculado ao cadastro':x.produto_id?'SIM':'NÃO','Fonte':x.origem_arquivo||''}})
+    .filter(x=>!busca||(String(x['Código origem'])+' '+x['Descrição origem']+' '+x['Família origem']+' '+x.Lote).toLowerCase().includes(busca));
  }else{
    titulo='Estoque_MP';
-   linhas=mps.map(m=>{let a=emp.filter(x=>N(x.materia_prima_id)===N(m.id)),q=a.reduce((z,x)=>z+N(x.quantidade),0);return {m,q}})
+   const grupos=new Map();
+   emp.forEach(x=>{
+     const m=mps.find(z=>N(z.id)===N(x.materia_prima_id));if(!m)return;
+     const lote=String(x.lote||''),chave=String(m.id)+'|'+lote;
+     if(!grupos.has(chave))grupos.set(chave,{m,lote,q:0});
+     grupos.get(chave).q+=N(x.quantidade);
+   });
+   linhas=[...grupos.values()]
     .filter(x=>x.q!==0)
-    .filter(x=>!busca||(String(x.m.codigo||'')+' '+String(x.m.descricao||'')).toLowerCase().includes(busca))
-    .map(x=>({'Código':x.m.codigo,'Descrição':x.m.descricao,'Unidade':x.m.unidade||'','Quantidade':x.q}));
+    .filter(x=>!busca||(String(x.m.codigo||'')+' '+String(x.m.descricao||'')+' '+x.lote).toLowerCase().includes(busca))
+    .map(x=>({'Código':x.m.codigo,'Descrição':x.m.descricao,'Unidade':x.m.unidade||'','Lote':x.lote||'Sem lote informado','Quantidade':x.q}))
+    .sort((a,b)=>String(a['Código']).localeCompare(String(b['Código']),'pt-BR',{numeric:true})||String(a.Lote).localeCompare(String(b.Lote),'pt-BR'));
  }
  if(!linhas.length)return toast('Não há itens para gerar o relatório com os filtros atuais.');
  let ws=XLSX.utils.json_to_sheet(linhas);
- ws['!cols']=stockTipoAtual==='PA'?[{wch:12},{wch:17},{wch:52},{wch:22},{wch:16},{wch:14},{wch:19},{wch:18},{wch:35}]:stockTipoAtual==='PP'?[{wch:14},{wch:48},{wch:24},{wch:14},{wch:14},{wch:14},{wch:14}]:[{wch:14},{wch:50},{wch:12},{wch:16}];
+ ws['!cols']=stockTipoAtual==='PA'?[{wch:12},{wch:17},{wch:52},{wch:22},{wch:16},{wch:22},{wch:14},{wch:19},{wch:20},{wch:35}]:stockTipoAtual==='PP'?[{wch:14},{wch:48},{wch:24},{wch:22},{wch:14},{wch:14},{wch:14},{wch:14}]:[{wch:14},{wch:50},{wch:12},{wch:24},{wch:16}];
  let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,titulo);
  let data=new Date().toISOString().slice(0,10);
  XLSX.writeFile(wb,`${titulo}_${data}.xlsx`);
@@ -2804,13 +2820,13 @@ function calcularAuditoriaWms(){
    }else if(String(local?.codigo||'').toUpperCase()!==tipo){
     problemas.push('Local cadastrado incompatível com o tipo');r.irregular+=qtd;
    }else{r.enderecado+=qtd;}
-   if(problemas.length)ocorrencias.push({tipo,codigo,descricao,qtd,posicao:end?.codigo||(x.endereco_wms_id?`ID ${x.endereco_wms_id}`:'Sem posição'),motivo:problemas.join('; '),estoque_id:x.id});
+   if(problemas.length)ocorrencias.push({tipo,codigo,descricao,lote:x.lote||'',qtd,posicao:end?.codigo||(x.endereco_wms_id?`ID ${x.endereco_wms_id}`:'Sem posição'),motivo:problemas.join('; '),estoque_id:x.id});
   }
  }
  for(const e of ends){
   const s=situacaoRealWms(e);if(!s.divergencia)continue;
   const tipo=String(lp.get(N(e.local_id))?.codigo||'').toUpperCase();
-  ocorrencias.push({tipo:tipo||'WMS',codigo:'—',descricao:'Status cadastral da posição',qtd:s.quantidade,posicao:e.codigo,motivo:`Status salvo: ${e.status||'vazio'}; pelo saldo: ${s.status}`,estoque_id:'—'});
+  ocorrencias.push({tipo:tipo||'WMS',codigo:'—',descricao:'Status cadastral da posição',lote:'',qtd:s.quantidade,posicao:e.codigo,motivo:`Status salvo: ${e.status||'vazio'}; pelo saldo: ${s.status}`,estoque_id:'—'});
  }
  return {resumo,ocorrencias};
 }
@@ -2824,7 +2840,7 @@ function auditarWms(atualizar=false){
 function exportarAuditoriaWms(){
  if(typeof XLSX==='undefined')return toast('Biblioteca Excel indisponível');
  const {resumo,ocorrencias}=calcularAuditoriaWms();wmsAuditoriaLinhas=ocorrencias;
- const cols=ocorrencias.map(x=>({Tipo:x.tipo,Codigo:x.codigo,Descricao:x.descricao,Quantidade:x.qtd,Posicao:x.posicao,Ocorrencia:x.motivo,Registro_estoque:x.estoque_id}));
+ const cols=ocorrencias.map(x=>({Tipo:x.tipo,Codigo:x.codigo,Descricao:x.descricao,Lote:x.lote||'',Quantidade:x.qtd,Posicao:x.posicao,Ocorrencia:x.motivo,Registro_estoque:x.estoque_id}));
  const wb=XLSX.utils.book_new(),ws=XLSX.utils.json_to_sheet(cols.length?cols:[{Resultado:'Sem divergências estruturais'}]);
  XLSX.utils.book_append_sheet(wb,ws,'Divergencias');
  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(Object.values(resumo)),'Resumo');
@@ -5431,26 +5447,36 @@ async function relMontar(d){
   nota=nota||'Saldo de pedido considera a baixa confirmada por QR; programado não equivale a entregue.';
  }
  if(d.id==='est_pp'||d.id==='est_mp'){
-  const isPP=d.id==='est_pp',cad=isPP?produtos:mps,estoque=isPP?pp:emp,campo=isPP?'produto_id':'materia_prima_id',pos=new Set();
-  rows=cad.map(p=>{const a=estoque.filter(x=>Number(x[campo])===Number(p.id));const Físico=relValores(a,'quantidade'),Reservado=relValores(a,'reservado'),Bloqueado=relValores(a,'bloqueado');a.forEach(x=>{if(x.endereco_wms_id)pos.add(x.endereco_wms_id)});return {Código:p.codigo,Descrição:p.descricao,Família:isPP?p.familia||'':(p.unidade||''),Físico,Reservado,Bloqueado,Disponível:Físico-Reservado-Bloqueado,__status:Físico>0?'Com saldo':'Zerado'}}).filter(x=>x.Físico!==0||x.Reservado!==0||x.Bloqueado!==0).sort((a,b)=>String(a.Código).localeCompare(String(b.Código),'pt-BR',{numeric:true}));
-  cols=[['Código','Código',.8],['Descrição','Descrição',3],['Família',isPP?'Família':'Unidade',1.2],['Físico','Físico',.9,'right'],['Reservado','Reservado',.9,'right'],['Bloqueado','Bloqueado',.9,'right'],['Disponível','Disponível',1,'right']];nota='Fotografia atual do estoque; não representa movimentação por período.';
+  const isPP=d.id==='est_pp',cad=isPP?produtos:mps,estoque=isPP?pp:emp,campo=isPP?'produto_id':'materia_prima_id',grupos=new Map();
+  for(const x of estoque){
+   const p=cad.find(z=>Number(z.id)===Number(x[campo]));if(!p)continue;
+   const lote=String(x.lote||''),chave=String(p.id)+'|'+lote;
+   if(!grupos.has(chave))grupos.set(chave,{Código:p.codigo,Descrição:p.descricao,Família:isPP?p.familia||'':(p.unidade||''),Lote:lote,Físico:0,Reservado:0,Bloqueado:0});
+   const g=grupos.get(chave);g.Físico+=relNum(x.quantidade);g.Reservado+=relNum(x.reservado);g.Bloqueado+=relNum(x.bloqueado);
+  }
+  rows=[...grupos.values()].map(x=>({...x,Lote:x.Lote||'Sem lote informado',Disponível:x.Físico-x.Reservado-x.Bloqueado,__status:x.Físico>0?'Com saldo':'Zerado'})).filter(x=>x.Físico!==0||x.Reservado!==0||x.Bloqueado!==0).sort((a,b)=>String(a.Código).localeCompare(String(b.Código),'pt-BR',{numeric:true})||String(a.Lote).localeCompare(String(b.Lote),'pt-BR'));
+  cols=[['Código','Código',.8],['Descrição','Descrição',3],['Família',isPP?'Família':'Unidade',1.2],['Lote','Lote',1.4],['Físico','Físico',.9,'right'],['Reservado','Reservado',.9,'right'],['Bloqueado','Bloqueado',.9,'right'],['Disponível','Disponível',1,'right']];nota='Fotografia atual do estoque agrupada por produto e lote; não representa movimentação por período.';
  }
- if(d.id==='est_pa'){
-  const grouped=new Map();for(const a of epa){const p=patioDadosOrigem(a);const key=String(p.codigo||'SEM CÓDIGO')+'|'+String(p.descricao||'');if(!grouped.has(key))grouped.set(key,{Código:p.codigo||'(sem código)',Descrição:p.descricao||'',Família:p.familia||'',Físico:0,Registros:0,Cadastro:'Vinculado'});const v=grouped.get(key);v.Físico+=relNum(a.quantidade);v.Registros++;if(!a.produto_id)v.Cadastro='Revisar cadastro';}
-  rows=[...grouped.values()].filter(r=>r.Físico!==0).map(x=>({...x,__status:x.Cadastro})).sort((a,b)=>String(a.Código).localeCompare(String(b.Código),'pt-BR',{numeric:true}));cols=[['Código','Código',1],['Descrição','Descrição',3.3],['Família','Família',1.5],['Físico','Físico',1,'right'],['Registros','Registros',1,'right'],['Cadastro','Cadastro',1.3]];nota='Códigos sem vínculo continuam identificados pela descrição original; estoques não são mesclados ao PP.';
+
+if(d.id==='est_pa'){
+  const grouped=new Map();for(const a of epa){const p=patioDadosOrigem(a),lote=String(a.lote||'');const key=String(p.codigo||'SEM CÓDIGO')+'|'+String(p.descricao||'')+'|'+lote;if(!grouped.has(key))grouped.set(key,{Código:p.codigo||'(sem código)',Descrição:p.descricao||'',Família:p.familia||'',Lote:lote||'Sem lote informado',Físico:0,Registros:0,Cadastro:'Vinculado'});const v=grouped.get(key);v.Físico+=relNum(a.quantidade);v.Registros++;if(!a.produto_id)v.Cadastro='Revisar cadastro';}
+  rows=[...grouped.values()].filter(r=>r.Físico!==0).map(x=>({...x,__status:x.Cadastro})).sort((a,b)=>String(a.Código).localeCompare(String(b.Código),'pt-BR',{numeric:true})||String(a.Lote).localeCompare(String(b.Lote),'pt-BR'));cols=[['Código','Código',1],['Descrição','Descrição',3.3],['Família','Família',1.5],['Lote','Lote',1.4],['Físico','Físico',1,'right'],['Registros','Registros',1,'right'],['Cadastro','Cadastro',1.3]];nota='Códigos sem vínculo continuam identificados pela descrição original; agrupamento separado por lote, sem mesclar ao PP.';
  }
- if(d.id==='wms_pos'){
+
+if(d.id==='wms_pos'){
   for(const [tipo,arr,id,tab] of [['PP',pp,'produto_id',pm],['MP',emp,'materia_prima_id',mm],['PA',epa,'produto_id',pm]])for(const x of arr){if(!relNum(x.quantidade))continue;let p=tipo==='PA'?patioDadosOrigem(x):tab.get(Number(x[id]))||{};const e=em.get(Number(x.endereco_wms_id));rows.push({Tipo:tipo,Posição:e?.codigo||'(sem posição)',Código:p.codigo||x[id]||x.id,Descrição:p.descricao||'',Lote:x.lote||'',Físico:relNum(x.quantidade),Reservado:relNum(x.reservado),Disponível:relNum(x.quantidade)-relNum(x.reservado)-relNum(x.bloqueado),__status:e?'Endereçado':'Sem posição'})}
   rows.sort((a,b)=>a.Tipo.localeCompare(b.Tipo)||String(a.Posição).localeCompare(String(b.Posição),'pt-BR',{numeric:true}));cols=[['Tipo','Tipo',.55],['Posição','Posição',1.35],['Código','Código',.85],['Descrição','Descrição',2.8],['Lote','Lote',1.4],['Físico','Físico',.8,'right'],['Reservado','Reservado',.8,'right'],['Disponível','Disponível',1,'right']];nota='Linhas sem posição aparecem separadamente; valores vinculados ao endereço WMS.';
  }
  if(d.id==='wms_audit'){
-  const r=calcularAuditoriaWms();rows=r.ocorrencias.map(x=>({Tipo:x.tipo,Código:x.codigo,Descrição:x.descricao,Quantidade:relNum(x.qtd),Posição:x.posicao,Ocorrência:x.motivo,'ID estoque':x.estoque_id,__status:x.motivo}));cols=[['Tipo','Tipo',.65],['Código','Código',.95],['Descrição','Descrição',2.8],['Quantidade','Quantidade',1,'right'],['Posição','Posição',1.5],['Ocorrência','Ocorrência',3]];nota='Auditoria estrutural somente leitura. Não ajusta estoque ou contagens.';
+  const r=calcularAuditoriaWms();rows=r.ocorrencias.map(x=>({Tipo:x.tipo,Código:x.codigo,Descrição:x.descricao,Lote:x.lote||'',Quantidade:relNum(x.qtd),Posição:x.posicao,Ocorrência:x.motivo,'ID estoque':x.estoque_id,__status:x.motivo}));cols=[['Tipo','Tipo',.65],['Código','Código',.95],['Descrição','Descrição',2.8],['Lote','Lote',1.4],['Quantidade','Quantidade',1,'right'],['Posição','Posição',1.5],['Ocorrência','Ocorrência',3]];nota='Auditoria estrutural somente leitura; o lote é mostrado quando a ocorrência está associada a um registro de estoque. Não ajusta estoque ou contagens.';
  }
- if(d.id==='inventario'){
-  const im=relMap(inventarios);for(const x of contagens){const iv=im.get(Number(x.inventario_id))||{},it=(x.tipo_estoque==='MATERIA_PRIMA'?mm:pm).get(Number(x.item_id))||{},s=x.status==='APROVADO'&&x.quantidade_sistema!=null?relNum(x.quantidade_sistema):saldoContagem(x);rows.push({Inventário:iv.codigo||x.inventario_id,Tipo:x.tipo_estoque==='MATERIA_PRIMA'?'MP':'PP',Posição:em.get(Number(x.endereco_wms_id))?.codigo||'',Código:it.codigo||x.item_id,Contado:relNum(x.quantidade_contada),Sistema:s,Diferença:x.status==='APROVADO'&&x.diferenca!=null?relNum(x.diferenca):relNum(x.quantidade_contada)-s,Situação:x.status||'PENDENTE',__data:relData(x.criado_em||iv.criado_em),__status:x.status||'PENDENTE'});}
-  cols=[['Inventário','Inventário',1.2],['Tipo','Tipo',.6],['Posição','Posição',1.4],['Código','Código',1],['Contado','Contado',1,'right'],['Sistema','Sistema',1,'right'],['Diferença','Diferença',1,'right'],['Situação','Situação',1.3]];nota='Contagens pendentes são comparadas ao saldo ATUAL; aprovadas usam a diferença registrada na aprovação.';
+
+if(d.id==='inventario'){
+  const im=relMap(inventarios);for(const x of contagens){const iv=im.get(Number(x.inventario_id))||{},it=(x.tipo_estoque==='MATERIA_PRIMA'?mm:pm).get(Number(x.item_id))||{},s=x.status==='APROVADO'&&x.quantidade_sistema!=null?relNum(x.quantidade_sistema):saldoContagem(x);rows.push({Inventário:iv.codigo||x.inventario_id,Tipo:x.tipo_estoque==='MATERIA_PRIMA'?'MP':'PP',Posição:em.get(Number(x.endereco_wms_id))?.codigo||'',Código:it.codigo||x.item_id,Lote:x.lote||'',Contado:relNum(x.quantidade_contada),Sistema:s,Diferença:x.status==='APROVADO'&&x.diferenca!=null?relNum(x.diferenca):relNum(x.quantidade_contada)-s,Situação:x.status||'PENDENTE',__data:relData(x.criado_em||iv.criado_em),__status:x.status||'PENDENTE'});}
+  cols=[['Inventário','Inventário',1.2],['Tipo','Tipo',.6],['Posição','Posição',1.4],['Código','Código',1],['Lote','Lote',1.4],['Contado','Contado',1,'right'],['Sistema','Sistema',1,'right'],['Diferença','Diferença',1,'right'],['Situação','Situação',1.3]];nota='Contagens pendentes são comparadas ao saldo ATUAL; aprovadas usam a diferença registrada na aprovação. O lote é apresentado para rastreabilidade da contagem.';
  }
- if(d.id==='cargas'){
+
+if(d.id==='cargas'){
   rows=cargas.map(c=>{const a=cargaItensDB.filter(y=>Number(y.carga_id)===Number(c.id));return {Romaneio:c.romaneio||c.id,Cliente:c.destinatario||'',Destino:c.cidade_destino||'',Data:relFmtData(c.data_expedicao),Situação:c.status||'',Pallets:a.length,Unidades:relValores(a,'quantidade'),Transportadora:c.transportadora||'',Placa:c.placa||'',__data:relData(c.data_expedicao),__status:c.status||''}}).sort((a,b)=>String(b.__data).localeCompare(String(a.__data)));cols=[['Romaneio','Romaneio',1],['Cliente','Cliente',1.5],['Destino','Destino',1.1],['Data','Expedição',1],['Situação','Situação',1],['Pallets','Pallets',.7,'right'],['Unidades','Unidades',.9,'right'],['Transportadora','Transportadora',1.4],['Placa','Placa',.8]];nota='Quantidade programada não é quantidade efetivamente embarcada.';
  }
  if(d.id==='conf_carga'){
